@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                <h1 class="text-center"><img src="icons/icon-38.png" /> Random Bookmark Settings</h1>
+				<div class="text-center info"><strong>Version</strong>: 2.0.6 / <strong>Updated</strong>: February 2, 2020</div>
+                <hr />
+				
+				<div class="alert alert-info text-center">
+					Your settings are saved automatically when you change them!<br />
+					You can close this window/tab when you're done making changes.
+				</div>
+        
+                <form id="options-form">
+                    <div class="my-3">
+                        <h2>Randomize Method</h2>
+						
+						<p>
+                            Your bookmark groups are preloaded and shuffled into storage. 
+                            If you change your bookmarks (add/edit/delete), the addon will reload and shuffle your bookmark groups again.
+						</p>
+        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-default" value="default" checked />
+                            <label class="form-check-label" for="randomoption-default">
+								Pick a random bookmark each time. The original method implemented.
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-bybookmark" value="bybookmark" />
+                            <label class="form-check-label" for="randomoption-bybookmark">
+                                On each click, starting from the first bookmark, the plugin will go to the next one and so on and loop when it reaches the end.
+                            </label>
+                        </div>
+
+                        <Hr />
+        
+                        <h2>Tab Options</h2>
+                                
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="openoption" id="openoption-default" value="default" checked />
+                            <label class="form-check-label" for="openoption-default">
+                                    Open a new tab and then keep using that tab
+                            </label>
+                        </div>
+        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="openoption" id="openoption-new" value="newTab" />
+                            <label class="form-check-label" for="openoption-new">
+                                    Open in new tab each time
+                            </label>
+                        </div>
+        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="openoption" id="openoption-current" value="currentTab" />
+                            <label class="form-check-label" for="openoption-current">
+                                    Open in the currently selected tab
+                            </label>
+                        </div>
+                        <br />
+
+						<div class="alert alert-secondary">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" name="activeoption" id="activeoption" value="playlist" checked />
+								<label class="form-check-label" for="activeoption">
+									Set the tab as active on open. <small>(Mainly used by the first or second tab options above)</small>
+								</label>
+							</div>
+						</div>
+                                
+                        <hr />
+
+                        <h2>Context Menu</h2>
+						
+						<p>
+							These will open in new tabs.
+						</p>
+						
+						<h5>Quick Open of 1 Random Bookmark</h5>
+                        <p>
+                            If checked, when you right click on a bookmark or folder, you will see an option to load a random bookmark!
+                            If you select a bookmark, it will pick a random bookmark from that folder that the bookmark is in.
+                        </p>
+                        
+						<div class="alert alert-secondary mb-3">
+								
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" name="showContextMenu" id="showContextMenu" checked />
+								<label class="form-check-label" for="showContextMenu">
+									Show the bookmark context menu options shortcut
+								</label>
+							</div>
+						</div>
+						
+						<h5>Quick Open of More Than 1 Random Bookmark</h5>
+						<p>
+							If checked, when you right click on a bookmark or folder, you will see options to load 2 to 10 random bookmarks
+							from the selected folder.
+						</p>
+						
+						<div class="alert alert-secondary">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" name="showContextOpenCountMenu" id="showContextOpenCountMenu" checked />
+								<label class="form-check-label" for="showContextOpenCountMenu">
+									Show the bookmark context menu open 2-10 random bookmark options
+								</label>
+							</div>
+						</div>
+                    </div>
+                    
+                    <hr />
+                    
+                    <h2>Bookmarks</h2>
+
+                    <div class="alert alert-info">
+                        If no bookmark folders are selected, the addon will use all of your bookmarks.<br />
+                        Selecting a parent folder will not load any bookmarks from the children. The plugin only looks for 
+                        bookmarks in the selected folders.<br /><br />
+
+                        To change which bookmark group is active, right click on the browser icon for this add-on and then
+                        select which group it should randomize from!<br /><br />
+
+                        If you have more than <span id="max-menu-items">6</span> groups, Firefox moves the extra groups into a sub-menu.<br /><br />
+						
+						<strong>Note:</strong> If things stop saving, it may be caused by going over the 100kb sync storage limit.
+                        It should require a LOT of groups and bookmark folders being saved but it's possible.
+                        Shouldn't ever really happen but it's something to keep in mind.
+						
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button id="action-add-group" class="btn btn-primary" type="button">Add</button>
+                        </div>
+                        <select id="bookmark-groups" class="form-control">
+                            <option value="default">Default</option>
+                        </select>                        
+                        <div class="input-group-append">
+                            <button id="action-edit-group" class="btn btn-info" type="button" disabled>Edit</button>
+                            <button id="action-delete-group" class="btn btn-danger" type="button" disabled>Delete</button>
+                        </div>
+                    </div>
+
+                    <div id="bookmarks-wrapper">
+                        <table class="table table-sm">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th style="width: 40px;" class="text-center"><input id="select-all" type="checkbox" /></th>
+                                    <th>Folder</th>
+                                    <th style="width: 100px;" class="text-right">Bookmarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookmarks-folders">
+
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <hr />
+						
+					<div class="alert alert-info text-center">
+						Your settings are saved automatically when you change them!<br />
+						You can close this window/tab when you're done making changes.
+					</div>
+					
+					<hr />
+
+                    <div class="text-center mt-3">
+						<p>
+							Having issues? Use the tools below for help troubleshooting.
+						</p>
+                        <button id="action-clear-data" type="button" class="btn btn-danger btn-sm">Clear All Add-On Data</button>
+						<button id="action-log-all-data" type="button" class="btn btn-info btn-sm">Log Add-On Data To Console Window</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="shared.js"></script>
+    <script src="core.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>

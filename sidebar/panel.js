@@ -63,7 +63,7 @@ function loadBookmarkGroups() {
 
 function createGroupOption(id, name) {
     var option = document.createElement('button');
-    option.innerHTML = name;
+    option.appendChild(document.createTextNode(name));
     option.id = id;
     option.className = setActiveButtonCss(id);
     option.onclick = function() { 

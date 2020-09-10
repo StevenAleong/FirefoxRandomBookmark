@@ -26,11 +26,6 @@ selectAll.onclick = function() {
 	} 
 };
 
-// Max Menu Items 
-// -------------------------------------------------------------
-var spanMaxMenuItems = document.getElementById('max-menu-items');
-spanMaxMenuItems.innerHTML = browser.menus.ACTION_MENU_TOP_LEVEL_LIMIT;
-
 // Close Settings
 // -------------------------------------------------------------
 // var closeSettings = document.getElementById('action-close');
@@ -173,7 +168,8 @@ editBookmarkGroup.onclick = function() {
             editGroupInfo.name = nameEdit.trim();
             saveBookmarks();
 
-            bookmarkGroups.options[bookmarkGroups.selectedIndex].innerHTML = nameEdit;
+            bookmarkGroups.options[bookmarkGroups.selectedIndex].appendChild(document.createTextNode(nameEdit));
+            
             groupsChanged();
         }
     }
@@ -398,7 +394,9 @@ function loadSelectedBookmarks(groupID) {
 
     if (groupInfo) {
         for(var i = 0; i < groupInfo.selected.length; i++) {
-            document.getElementById(groupInfo.selected[i]).checked = true;
+            if (document.getElementById(groupInfo.selected[i]) !== null) {
+                document.getElementById(groupInfo.selected[i]).checked = true;
+            }
         }
     }
 	
@@ -434,7 +432,8 @@ function processBookmarks(bookmarkItem, indent, parentID) {
         
         var labelTitle = document.createElement('label');
         labelTitle.htmlFor = bookmarkItem.id;		
-        labelTitle.innerHTML = makeIndent(indent) + ' ' + escapeHTML(bookmarkItem.title);
+        labelTitle.appendChild(document.createTextNode(makeIndent(indent) + ' ' + escapeHTML(bookmarkItem.title)));
+
         if (indent === 0) {
             labelTitle.style.fontWeight = 'bold';
         }
@@ -451,8 +450,8 @@ function processBookmarks(bookmarkItem, indent, parentID) {
 			}
 			
 			if (showToggle) {
-				var btnSelectChildren = document.createElement('button');
-				btnSelectChildren.innerHTML = 'Select direct sub-folders';
+                var btnSelectChildren = document.createElement('button');                
+                btnSelectChildren.textContent = 'Select direct sub-folders';
 				btnSelectChildren.style.fontSize = '12px';
 				btnSelectChildren.style.color = '#555';
 				btnSelectChildren.style.float = 'right';
@@ -472,7 +471,8 @@ function processBookmarks(bookmarkItem, indent, parentID) {
 		        
         var tdCount = document.createElement('td');
         tdCount.style.textAlign = 'right';
-        tdCount.innerHTML = escapeHTML(countOfBookmarks.toString());
+        tdCount.appendChild(document.createTextNode(escapeHTML(countOfBookmarks.toString())));
+
         tr.appendChild(tdCount);
         
         tbody.appendChild(tr);
@@ -490,7 +490,8 @@ function processBookmarks(bookmarkItem, indent, parentID) {
 };
 
 function makeIndent(indentLength) {
-    return ' &nbsp; &nbsp; &nbsp; '.repeat(indentLength);
+    //return ' &nbsp; &nbsp; &nbsp; '.repeat(indentLength);
+    return ' \u00A0\u00A0\u00A0\u00A0 '.repeat(indentLength)
 };
 
 function escapeHTML(str) {
@@ -510,7 +511,7 @@ function groupsChanged() {
 function loadUsedSpaceSize() {
 	var gettingSpace = browser.storage.sync.getBytesInUse(null);
 	gettingSpace.then(function(r) {
-		document.getElementById('used-storage-sync').innerHTML = r;
+		document.getElementById('used-storage-sync').appendChild(document.createTextNode(r));
 	});
 }
     

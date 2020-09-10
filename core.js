@@ -12,7 +12,8 @@ var pluginSettings = {
 };
 
 var sessionInfo = {
-    currentTabId: 0
+    currentTabId: 0,
+    loadingDateTimeStarted: null
 };
 
 function loadUserSettings() {
@@ -116,19 +117,45 @@ function loadBrowserActionGroups() {
 					browser.storage.local.set({
 						activeGroup: 'default'
 					});
-				}
-				
-
-				createContextOption('default', 'Default');
+                }
+                
+                // Add the bookmark groups menu option
+                browser.menus.create({
+                    id: 'options-groupparent',
+                    type: 'normal',
+                    title: 'Bookmark Groups',
+                    contexts: ['browser_action']
+                }, function() {
+                    pluginSettings.browserAction.push('options-groupparent');
+                });
+                
+                // Add the default group
+                createContextOption('default', 'Default', 'options-groupparent');
+                
+                // Add the rest of the groups
 				for(var i = 0; i < bookmarkGroupSettings.length; i++) {
 					if (bookmarkGroupSettings[i].id !== 'default') {
-						createContextOption(bookmarkGroupSettings[i].id, bookmarkGroupSettings[i].name);
+						createContextOption(bookmarkGroupSettings[i].id, bookmarkGroupSettings[i].name, 'options-groupparent');
 					}                    
 				}
 				
 			} else {
 				createContextOption('default', 'Default');
-			}
+            }
+            
+            // Add a shortcut to the options page
+            browser.menus.create({
+                id: 'options-page',
+                type: 'normal',
+                title: 'Random Bookmark Options',
+                contexts: ['browser_action'],
+                icons: {
+                    "16": "icons/gear-16.png",
+                    "32": "icons/gear-32.png"
+                }
+            }, function() {
+                pluginSettings.browserAction.push('options-page');
+            });
 
 			// Check/preload the currently selected menu
 			preloadBookmarksIntoLocalStorage();
@@ -146,19 +173,26 @@ function removeContextOption(id){
 	browser.menus.remove(id);
 };
 
-function createContextOption(id, name) {
-    browser.menus.create({
+function createContextOption(id, name, parent) {
+    var menuItem = {
         id: id,
         type: 'radio',
         title: name,
-        checked: id === pluginSettings.selectedGroup,
+        checked: id === pluginSettings.selectedGroup ? true : false,
         contexts: ['browser_action']
-    }, function() {
+    };
+
+    if (typeof parent != 'undefined') {
+        menuItem.parentId = parent;
+    }
+
+    browser.menus.create(menuItem, function() {
 		pluginSettings.browserAction.push(id);
 	});
 };
 
 function preloadBookmarksIntoLocalStorage() {
+    sessionInfo.loadingDateTimeStarted = Date.now();
     pluginSettings.loadingBookmarks = true;
 
     // Preload only the selected group.
@@ -171,18 +205,24 @@ function preloadBookmarksIntoLocalStorage() {
 
         if (found.length) {
             var group = found[0];
-			
+            
             if (group.reload) {
                 loadBookmarksIntoLocalStorage(group.id, group.selected);
+
             }  else {
                 pluginSettings.loadingBookmarks = false;
+                sessionInfo.loadingDateTimeStarted = null;
+
             }
-			
+            
         } else {
-			pluginSettings.loadingBookmarks = false;
-		}
-      
+            pluginSettings.loadingBookmarks = false;
+            sessionInfo.loadingDateTimeStarted = null;
+
+        }
+    
     });
+
 };
 
 function loadBookmarksIntoLocalStorage(id, folders) {
@@ -191,8 +231,7 @@ function loadBookmarksIntoLocalStorage(id, folders) {
 
         // Selected Bookmarks
         for(var i = 0; i < folders.length; i++) {
-            var bookmarkFolderInfo = browser.bookmarks.getChildren(folders[i]);
-            selectedPromises.push(bookmarkFolderInfo);
+            selectedPromises.push(browser.bookmarks.getChildren(folders[i]));
         }
 
         processBookmarkPromises(id, selectedPromises);
@@ -207,37 +246,66 @@ function loadBookmarksIntoLocalStorage(id, folders) {
 };
 
 function processBookmarkPromises(id, promises) {
-    Promise.all(promises)
-        .then(function (result) {
-            var bookmarksToSave = [];
-            
-            for(var i = 0; i < result.length; i++) {
-                if (result[i].length > 0) {
-                    var bookmarks = result[i];
+    settlePromises(promises)
+    .then(results => {
+        var bookmarksToSave = [];
 
-                    for(var ri = 0; ri < bookmarks.length; ri++) {
-                        var r = processBookmarks(bookmarks[ri], bookmarks[ri].id === 'root________');
-                        bookmarksToSave = bookmarksToSave.concat(r);
-                    }
-                }                
+        results.forEach(result => {
+            if (result.state === 'fulfilled'){
+                //console.log('succeeded', result.value);
+
+                for(var i = 0; i < result.value.length; i++) {
+                    var r = processBookmarks(result.value[i], result.value[i].id === 'root________');
+                    bookmarksToSave = bookmarksToSave.concat(r);
+                }
+
+            } else {
+                //console.log('failed', result.value);
+
             }
-
-            var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
-                return index === self.indexOf(elem);
-            });
-
-            Shuffle(uniqueBookmarks);
-									                   
-            browser.storage.local.set({
-                [id]: uniqueBookmarks
-            });
-            
-            pluginSettings.loadingBookmarks = false;
-
-            //showNotification('Random Bookmark Preload', 'Finished preloading the currently selected group!');
-
-            //console.log('Finished processing: ' + id);
         });
+
+        var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
+            return index === self.indexOf(elem);
+        });
+
+        Shuffle(uniqueBookmarks);
+
+        browser.storage.local.set({
+            [id]: uniqueBookmarks
+        });
+
+        pluginSettings.loadingBookmarks = false;
+    });
+
+    // Promise.all(promises)
+    //     .then(function (result) {
+    //         console.log(result);
+    //         var bookmarksToSave = [];
+            
+    //         for(var i = 0; i < result.length; i++) {
+    //             if (result[i].length > 0) {
+    //                 var bookmarks = result[i];
+
+    //                 for(var ri = 0; ri < bookmarks.length; ri++) {
+    //                     var r = processBookmarks(bookmarks[ri], bookmarks[ri].id === 'root________');
+    //                     bookmarksToSave = bookmarksToSave.concat(r);
+    //                 }
+    //             }                
+    //         }
+
+    //         var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
+    //             return index === self.indexOf(elem);
+    //         });
+
+    //         Shuffle(uniqueBookmarks);
+									                   
+    //         browser.storage.local.set({
+    //             [id]: uniqueBookmarks
+    //         });
+            
+    //         pluginSettings.loadingBookmarks = false;
+    //     });
 }
 
 function processBookmarks(bookmarkItem, goDeeper) {
@@ -278,3 +346,13 @@ function getBookmarks(bookmarkFolder) {
 function onError(e) {
     console.error(e);
 };
+
+// https://stackoverflow.com/a/32979111/13690517
+function settlePromises(arr){
+    return Promise.all(arr.map(promise => {
+      return promise.then(
+        value => ({state: 'fulfilled', value}),
+        value => ({state: 'rejected', value})
+      );
+    }));
+  }

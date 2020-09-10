@@ -34,14 +34,23 @@ function handleBrowserClickAction(tabInfo) {
 	// });
 
     if (pluginSettings.loadingBookmarks || pluginSettings.loadingGroups) {
-        showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded.");
+        showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded. If this pop up keeps showing up after a minute, please go to the options page and scroll to the bottom and clear out all add-on data, and then reinstall the plugin. Sorry.");
+
+		if (sessionInfo.loadingDateTimeStarted !== null) {
+			var currentDate = new Date();
+			var seconds = (currentDate.getTime() - sessionInfo.loadingDateTimeStarted) / 1000;
+			if (seconds >= 30) {
+				// Try reloading bookmarks again
+				preloadBookmarksIntoLocalStorage();
+			}
+		}
 
     } else {
-        var currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
+		var currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
 
         currentGroupGet.then((resBookmarks) => {
 			// resBookmarks is the array of bookmarks for the groups
-			if (resBookmarks.length > 0) {
+			if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
 				showNotification("No bookmarks found", "Start adding bookmarks first or check the addon settings");
 				
 			} else {		
@@ -125,9 +134,11 @@ function handleMenuClickAction(info, tab) {
 		});			
 		
 	} else {
-        // Browser Action group change
-			
-		if (pluginSettings.loadingBookmarks) {
+		// Browser Action group change
+		if (info.menuItemId.toString() === 'options-page') {
+			var openingPage = browser.runtime.openOptionsPage();
+
+		} else if (pluginSettings.loadingBookmarks) {
 			// Reload the context menus because I don't know how else to reselect the previous selected menu
 			loadBrowserActionGroups();
 

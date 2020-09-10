@@ -12,7 +12,7 @@
         <div class="row justify-content-center">
             <div class="col-xl-10">
                 <h1 class="text-center"><img src="icons/icon-38.png" /> Random Bookmark Settings</h1>
-				<div class="text-center info"><strong>Version</strong>: 2.0.6 / <strong>Updated</strong>: February 2, 2020</div>
+				<div class="text-center info"><strong>Version</strong>: 2.0.8 / <strong>Updated</strong>: September 9, 2020</div>
                 <hr />
 				
 				<div class="alert alert-info text-center">
@@ -32,7 +32,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="randomoption" id="randomoption-default" value="default" checked />
                             <label class="form-check-label" for="randomoption-default">
-								Pick a random bookmark each time. The original method implemented.
+								Pick a random bookmark each time.
                             </label>
                         </div>
                         
@@ -50,21 +50,21 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="openoption" id="openoption-default" value="default" checked />
                             <label class="form-check-label" for="openoption-default">
-                                    Open a new tab and then keep using that tab
+                                    Open a new tab and then keep using that tab.
                             </label>
                         </div>
         
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="openoption" id="openoption-new" value="newTab" />
                             <label class="form-check-label" for="openoption-new">
-                                    Open in new tab each time
+                                    Open in new tab each time.
                             </label>
                         </div>
         
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="openoption" id="openoption-current" value="currentTab" />
                             <label class="form-check-label" for="openoption-current">
-                                    Open in the currently selected tab
+                                    Open in the currently selected tab.
                             </label>
                         </div>
                         <br />
@@ -73,7 +73,7 @@
 							<div class="form-check">
 								<input class="form-check-input" type="checkbox" name="activeoption" id="activeoption" value="playlist" checked />
 								<label class="form-check-label" for="activeoption">
-									Set the tab as active on open. <small>(Mainly used by the first or second tab options above)</small>
+									Set the tab as active on open. This lets you open random bookmarks and not go directly to it. <small>(Mainly used by the first or second tab options above)</small>
 								</label>
 							</div>
 						</div>
@@ -129,8 +129,6 @@
 
                         To change which bookmark group is active, right click on the browser icon for this add-on and then
                         select which group it should randomize from!<br /><br />
-
-                        If you have more than <span id="max-menu-items">6</span> groups, Firefox moves the extra groups into a sub-menu.<br /><br />
 						
 						<strong>Note:</strong> If things stop saving, it may be caused by going over the 100kb sync storage limit.
                         It should require a LOT of groups and bookmark folders being saved but it's possible.

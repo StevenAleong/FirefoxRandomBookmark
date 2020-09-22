@@ -1,4 +1,6 @@
 function init() {
+	logToDebugConsole('init');
+
     loadUserSettings();
     loadContextMenus();
 	loadBrowserActionGroups();
@@ -13,21 +15,25 @@ function init() {
     browser.menus.onClicked.addListener(handleMenuClickAction);
 	
     // Watch when user changes their bookmarks.
-    browser.bookmarks.onCreated.addListener(handleBookmarksChangeAction);
-    browser.bookmarks.onChanged.addListener(handleBookmarksChangeAction);
-    browser.bookmarks.onMoved.addListener(handleBookmarksChangeAction);
-    browser.bookmarks.onRemoved.addListener(handleBookmarksChangeAction);
+    browser.bookmarks.onCreated.addListener(handleBookmarksCreatedAction);
+    browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
+    browser.bookmarks.onMoved.addListener(handleBookmarksMovedAction);
+    browser.bookmarks.onRemoved.addListener(handleBookmarksRemovedAction);
 };
 
 function showNotification(title, msg) {
+	logToDebugConsole('showNotification');
+
     browser.notifications.create('random-bookmark-loading-notification', {
         "type": "basic",
         "title": title,
         "message": msg
     });
-}
+};
 
-function handleBrowserClickAction(tabInfo) {	
+
+function handleBrowserClickAction(tabInfo) {
+	logToDebugConsole('handleBrowserClickAction');
 	// var allStorage = browser.storage.local.get(null);
 	// allStorage.then((all) => {
 		// console.log(all);
@@ -41,7 +47,7 @@ function handleBrowserClickAction(tabInfo) {
 			var seconds = (currentDate.getTime() - sessionInfo.loadingDateTimeStarted) / 1000;
 			if (seconds >= 30) {
 				// Try reloading bookmarks again
-				preloadBookmarksIntoLocalStorage();
+				preloadBookmarksIntoLocalStorage('handleBrowserClickAction');
 			}
 		}
 
@@ -97,6 +103,8 @@ function handleBrowserClickAction(tabInfo) {
 };
 
 function handleMenuClickAction(info, tab) {
+	logToDebugConsole('handleMenuClickAction');
+
 	if (tab === undefined) {
 		// Context click
 		var bookmarksToOpen = 1;
@@ -151,13 +159,14 @@ function handleMenuClickAction(info, tab) {
 			});
 
 			// Check/preload the currently selected menu
-			preloadBookmarksIntoLocalStorage();
+			preloadBookmarksIntoLocalStorage('handleMenuClickAction');
 		}
         
     }
 };
 
 function handleStorageChangeAction(changes, area) {
+	logToDebugConsole('handleStorageChangeAction', { 'changes': changes, 'area': area });
     if (area === 'sync') {
 		if (changes.showContextMenu || changes.showContextOpenCountMenu) {
 			loadContextMenus();			
@@ -171,11 +180,35 @@ function handleStorageChangeAction(changes, area) {
     }
 };
 
-function handleBookmarksChangeAction() {
+function handleBookmarksCreatedAction() {
+	logToDebugConsole('handleBookmarksCreatedAction');
+	handleTheBookmarks('handleBookmarksCreatedAction');
+};
+
+function handleBookmarksMovedAction() {
+	logToDebugConsole('handleBookmarksMovedAction');
+	handleTheBookmarks('handleBookmarksMovedAction');
+};
+
+function handleBookmarksRemovedAction() {
+	logToDebugConsole('handleBookmarksRemovedAction');
+	handleTheBookmarks('handleBookmarksRemovedAction');
+};
+
+function handleBookmarksChangedAction(id, changeInfo) {
+	logToDebugConsole('handleBookmarksChangedAction', { 'id': id, 'changeInfo': changeInfo });
+
+	handleTheBookmarks('handleBookmarksChangedAction');	
+};
+
+function handleTheBookmarks(source) {
+	logToDebugConsole('handleTheBookmarks', { 'source': source });
+
 	// Bookmarks was changed (edited/added/deleted)
     // Set all bookmark groups to reload
     var userSyncOptions = browser.storage.sync.get();
     userSyncOptions.then((syncRes) => {
+		console.log(syncRes);
         if (syncRes.groups) {
             var bookmarkGroups = syncRes.groups;
 
@@ -194,12 +227,14 @@ function handleBookmarksChangeAction() {
                 groups: bookmarkGroups
             });
 			
-            preloadBookmarksIntoLocalStorage();
+            preloadBookmarksIntoLocalStorage('handleTheBookmarks');
         }
     });
 };
 
 async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
+	logToDebugConsole('openBookmarks');
+
 	if (forceNewTab == null) {
 		forceNewTab = false;
 	}
@@ -273,7 +308,7 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 			}			
 		}
 	}
-}
+};
 
 init();
 
@@ -282,7 +317,10 @@ init();
 */
 browser.runtime.onInstalled.addListener(async({ reason, temporary }) => {
     if (temporary) {
-
+		console.log('-------------------------------------------------------------------------------------------');
+		console.log('DEBUGGING RANDOM BOOKMARK');
+		console.log('-------------------------------------------------------------------------------------------');
+		pluginSettings.isDebugging = true;
     }
 
     switch (reason) {

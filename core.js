@@ -5,10 +5,11 @@ var pluginSettings = {
     showContextMenu: false,
 	showContextOpenCountMenu: false,
     contextMenuName: 'randombookmarkContext',
-    loadingGroups: true,
-    loadingBookmarks: true,
+    loadingGroups: false,
+    loadingBookmarks: false,
     selectedGroup: 'default',
-	browserAction: []
+    browserAction: [],
+    isDebugging: false
 };
 
 var sessionInfo = {
@@ -17,6 +18,8 @@ var sessionInfo = {
 };
 
 function loadUserSettings() {
+    logToDebugConsole('loadUserSettings');
+
     var userOptions = browser.storage.sync.get();
     userOptions.then((resSync) => {
         pluginSettings.randomOption = resSync.randomOption === 'bybookmark' ? 'bybookmark' : 'default';
@@ -44,6 +47,8 @@ function loadUserSettings() {
 };
 
 function changeToGroups(selectedFolders) {
+    logToDebugConsole('changeToGroups');
+
     var defaultBookmarks = [{
         name: 'Default',
         id: 'default',
@@ -63,6 +68,8 @@ function changeToGroups(selectedFolders) {
 };
 
 function loadContextMenus() {
+    logToDebugConsole('loadContextMenus');
+
     var userLocalStorage = browser.storage.local.get();
     userLocalStorage.then((res) => {
 		removeContextOption(pluginSettings.contextMenuName);
@@ -92,6 +99,8 @@ function loadContextMenus() {
 };
 
 function loadBrowserActionGroups() {
+    logToDebugConsole('loadBrowserActionGroups');
+
 	var userLocalStorage = browser.storage.local.get();
     userLocalStorage.then((res) => {
 		var userSyncOptions = browser.storage.sync.get();
@@ -118,24 +127,32 @@ function loadBrowserActionGroups() {
 						activeGroup: 'default'
 					});
                 }
-                
-                // Add the bookmark groups menu option
-                browser.menus.create({
-                    id: 'options-groupparent',
-                    type: 'normal',
-                    title: 'Bookmark Groups',
-                    contexts: ['browser_action']
-                }, function() {
-                    pluginSettings.browserAction.push('options-groupparent');
-                });
+
+                var parentId;
+
+                //console.log(bookmarkGroupSettings);
+
+                if (bookmarkGroupSettings.length > 5) {
+                    // Add the bookmark groups menu option
+                    browser.menus.create({
+                        id: 'options-groupparent',
+                        type: 'normal',
+                        title: 'Bookmark Groups',
+                        contexts: ['browser_action']
+                    }, function() {
+                        pluginSettings.browserAction.push('options-groupparent');
+                    });
+
+                    parentId = 'options-groupparent';
+                }
                 
                 // Add the default group
-                createContextOption('default', 'Default', 'options-groupparent');
+                createContextOption('default', 'Default', parentId);
                 
                 // Add the rest of the groups
 				for(var i = 0; i < bookmarkGroupSettings.length; i++) {
 					if (bookmarkGroupSettings[i].id !== 'default') {
-						createContextOption(bookmarkGroupSettings[i].id, bookmarkGroupSettings[i].name, 'options-groupparent');
+						createContextOption(bookmarkGroupSettings[i].id, bookmarkGroupSettings[i].name, parentId);
 					}                    
 				}
 				
@@ -158,7 +175,7 @@ function loadBrowserActionGroups() {
             });
 
 			// Check/preload the currently selected menu
-			preloadBookmarksIntoLocalStorage();
+			preloadBookmarksIntoLocalStorage('loadBrowserActionGroups');
 
 			pluginSettings.loadingGroups = false;
 							
@@ -170,10 +187,14 @@ function loadBrowserActionGroups() {
 };
 
 function removeContextOption(id){ 
+    logToDebugConsole('removeContextOption');
+
 	browser.menus.remove(id);
 };
 
 function createContextOption(id, name, parent) {
+    logToDebugConsole('createContextOption');
+
     var menuItem = {
         id: id,
         type: 'radio',
@@ -182,7 +203,7 @@ function createContextOption(id, name, parent) {
         contexts: ['browser_action']
     };
 
-    if (typeof parent != 'undefined') {
+    if (typeof parent != 'undefined' && parent !== '') {
         menuItem.parentId = parent;
     }
 
@@ -191,41 +212,53 @@ function createContextOption(id, name, parent) {
 	});
 };
 
-function preloadBookmarksIntoLocalStorage() {
-    sessionInfo.loadingDateTimeStarted = Date.now();
-    pluginSettings.loadingBookmarks = true;
+function preloadBookmarksIntoLocalStorage(source) {
+    logToDebugConsole('preloadBookmarksIntoLocalStorage', { 'source': source, 'pluginSettings': pluginSettings });
 
-    // Preload only the selected group.
-    // I can't figure out how to load all the groups annoyingly, i don't get async.
-    var userSyncOptions = browser.storage.sync.get();
-    userSyncOptions.then((syncRes) => {
-        var found = syncRes.groups.filter(obj => {
-            return obj.id === pluginSettings.selectedGroup;
-        });
+    if (pluginSettings.loadingBookmarks === false) {
 
-        if (found.length) {
-            var group = found[0];
-            
-            if (group.reload) {
-                loadBookmarksIntoLocalStorage(group.id, group.selected);
-
-            }  else {
-                pluginSettings.loadingBookmarks = false;
-                sessionInfo.loadingDateTimeStarted = null;
-
-            }
-            
-        } else {
-            pluginSettings.loadingBookmarks = false;
-            sessionInfo.loadingDateTimeStarted = null;
-
-        }
+        sessionInfo.loadingDateTimeStarted = Date.now();
+        pluginSettings.loadingBookmarks = true;
     
-    });
+        // Preload only the selected group.
+        // I can't figure out how to load all the groups annoyingly, i don't get async.
+        var userSyncOptions = browser.storage.sync.get();
+        userSyncOptions.then((syncRes) => {
+            var found = syncRes.groups.filter(obj => {
+                return obj.id === pluginSettings.selectedGroup;
+            });
+    
+            if (found.length) {
+                var group = found[0];
+                
+                if (group.reload) {
+                    loadBookmarksIntoLocalStorage(group.id, group.selected);
+    
+                }  else {
+                    setTimeout(function() {
+                        pluginSettings.loadingBookmarks = false;
+                    }, 250);
+                    
+                    sessionInfo.loadingDateTimeStarted = null;
+    
+                }
+                
+            } else {
+                setTimeout(function() {
+                    pluginSettings.loadingBookmarks = false;
+                }, 250);
 
+                sessionInfo.loadingDateTimeStarted = null;
+    
+            }
+        
+        });
+    }
 };
 
 function loadBookmarksIntoLocalStorage(id, folders) {
+    logToDebugConsole('loadBookmarksIntoLocalStorage', { 'id': id, 'folders': folders });
+
     if (folders.length > 0) {
         var selectedPromises = [];
 
@@ -246,11 +279,14 @@ function loadBookmarksIntoLocalStorage(id, folders) {
 };
 
 function processBookmarkPromises(id, promises) {
+    logToDebugConsole('processBookmarkPromises', { 'id': id, 'promises': promises });
+
     settlePromises(promises)
     .then(results => {
         var bookmarksToSave = [];
 
         results.forEach(result => {
+            console.log(result);
             if (result.state === 'fulfilled'){
                 //console.log('succeeded', result.value);
 
@@ -261,6 +297,8 @@ function processBookmarkPromises(id, promises) {
 
             } else {
                 //console.log('failed', result.value);
+                // Remove from the grouped settings
+                // bookmarkGroupSettings
 
             }
         });
@@ -275,40 +313,15 @@ function processBookmarkPromises(id, promises) {
             [id]: uniqueBookmarks
         });
 
-        pluginSettings.loadingBookmarks = false;
+        setTimeout(function() {
+            pluginSettings.loadingBookmarks = false;
+        }, 250);
     });
-
-    // Promise.all(promises)
-    //     .then(function (result) {
-    //         console.log(result);
-    //         var bookmarksToSave = [];
-            
-    //         for(var i = 0; i < result.length; i++) {
-    //             if (result[i].length > 0) {
-    //                 var bookmarks = result[i];
-
-    //                 for(var ri = 0; ri < bookmarks.length; ri++) {
-    //                     var r = processBookmarks(bookmarks[ri], bookmarks[ri].id === 'root________');
-    //                     bookmarksToSave = bookmarksToSave.concat(r);
-    //                 }
-    //             }                
-    //         }
-
-    //         var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
-    //             return index === self.indexOf(elem);
-    //         });
-
-    //         Shuffle(uniqueBookmarks);
-									                   
-    //         browser.storage.local.set({
-    //             [id]: uniqueBookmarks
-    //         });
-            
-    //         pluginSettings.loadingBookmarks = false;
-    //     });
-}
+};
 
 function processBookmarks(bookmarkItem, goDeeper) {
+    logToDebugConsole('processBookmarks', { 'bookmarkItem': bookmarkItem, 'goDeeper': goDeeper });
+
     var bookmarksCollection = [];
 
     if (bookmarkItem.type === 'folder') {
@@ -332,6 +345,8 @@ function processBookmarks(bookmarkItem, goDeeper) {
 };
 
 function getBookmarks(bookmarkFolder) {
+    logToDebugConsole('getBookmarks', { 'bookmarkFolder': bookmarkFolder });
+    
     var bookmarksCollection = [];
     if (typeof bookmarkFolder !== 'undefined' && bookmarkFolder !== null)
     for (var i = 0; i < bookmarkFolder.length; i++) {
@@ -341,18 +356,28 @@ function getBookmarks(bookmarkFolder) {
     }
 
     return bookmarksCollection;
-}
+};
 
 function onError(e) {
     console.error(e);
 };
 
+function logToDebugConsole(what, data) {
+	if (pluginSettings.isDebugging) {
+        if (typeof data !== 'undefined') {
+            console.log(what, data);
+        } else {
+            console.log(what);
+        }		
+	}
+};
+
 // https://stackoverflow.com/a/32979111/13690517
 function settlePromises(arr){
     return Promise.all(arr.map(promise => {
-      return promise.then(
-        value => ({state: 'fulfilled', value}),
-        value => ({state: 'rejected', value})
-      );
+        return promise.then(
+            value => ({state: 'fulfilled', value}),
+            value => ({state: 'rejected', value})
+        );
     }));
-  }
+};

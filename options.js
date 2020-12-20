@@ -4,7 +4,8 @@ const settingsEnum = {
     TABACTIVE: 'tabactive',
     CONTEXTMENU: 'contextmenu',
     GROUP: 'bookmarkgroups',
-	CONTEXTOPENCOUNT: 'contextopencount'
+    CONTEXTOPENCOUNT: 'contextopencount',
+    SHOWACTIONNOTICE: 'showactionnotice'
 };
 
 var loading = true;
@@ -91,6 +92,11 @@ checkboxContextMenu.addEventListener('change', function() { saveSettings(setting
 
 var checkboxContextOpenCountMenu = document.getElementById('showContextOpenCountMenu');
 checkboxContextOpenCountMenu.addEventListener('change', function() { saveSettings(settingsEnum.CONTEXTOPENCOUNT); });
+
+// Helper Options
+// -------------------------------------------------------------
+var checkboxActionNotice = document.getElementById('showActionNotice');
+checkboxActionNotice.addEventListener('change', function() { saveSettings(settingsEnum.SHOWACTIONNOTICE); });
 
 // Bookmark Option
 // -------------------------------------------------------------
@@ -265,7 +271,14 @@ function saveSettings(option) {
 					showContextOpenCountMenu: showContextOpenCountMenu
 				});
                 groupsChanged();
-				break;
+                break;
+                
+            case settingsEnum.SHOWACTIONNOTICE:
+                var showActionNotice = document.getElementById('showActionNotice').checked;
+                browser.storage.sync.set({
+					showActionNotice: showActionNotice
+				});
+                break;
         }
     }    
 };
@@ -290,6 +303,8 @@ function loadSavedOptions() {
         document.getElementById('showContextMenu').checked = syncRes.showContextMenu;
 		
         document.getElementById('showContextOpenCountMenu').checked = syncRes.showContextOpenCountMenu;
+
+        document.getElementById('showActionNotice').checked = syncRes.showActionNotice;
 		
             // Port over selectedFolders to groups json
         if (syncRes.selectedFolders && syncRes.selectedFolders.length) {

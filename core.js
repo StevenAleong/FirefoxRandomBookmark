@@ -9,7 +9,8 @@ var pluginSettings = {
     loadingBookmarks: false,
     selectedGroup: 'default',
     browserAction: [],
-    isDebugging: false
+    isDebugging: false,
+    showActionNotice: false
 };
 
 var sessionInfo = {
@@ -25,7 +26,8 @@ function loadUserSettings() {
         pluginSettings.randomOption = resSync.randomOption === 'bybookmark' ? 'bybookmark' : 'default';
         pluginSettings.tabSetActive = typeof resSync.setActive !== 'undefined' ? resSync.setActive : true;
         pluginSettings.showContextMenu = typeof resSync.showContextMenu !== 'undefined' ? resSync.showContextMenu : false;  
-		pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== 'undefined' ? resSync.showContextOpenCountMenu : false;  
+        pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== 'undefined' ? resSync.showContextOpenCountMenu : false;  
+        pluginSettings.showActionNotice = typeof resSync.showActionNotice !== 'undefined' ? resSync.showActionNotice : false; 
 
         if (resSync.tabOption === 'newTab' || resSync.tabOption === 'currentTab') {
             pluginSettings.tabOption = resSync.tabOption;

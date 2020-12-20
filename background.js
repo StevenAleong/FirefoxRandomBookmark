@@ -79,6 +79,11 @@ function handleBrowserClickAction(tabInfo) {
 						
 						// Open it
 						openBookmarks([ urlToOpen ], false, tabInfo);
+
+						// Show notice
+						if (pluginSettings.showActionNotice === true) {
+							showNotification('Information', 'Showing bookmark ' + (groupIndex + 1) + '/' + resBookmarks[pluginSettings.selectedGroup].length);
+						}
 						
 						// Set the index for when the user presses the button again
 						groupIndex = groupIndex + 1;						

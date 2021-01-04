@@ -94,8 +94,12 @@ function handleBrowserClickAction(tabInfo) {
 					
 				} else {
 					// Get a random index
-					var r = new Random();
-					var randomIndex = r.Next(0, resBookmarks[pluginSettings.selectedGroup].length - 1);
+					var randomIndex = 0;
+
+					if (resBookmarks[pluginSettings.selectedGroup].length > 1) {
+						var r = new Random();
+						randomIndex = r.Next(0, resBookmarks[pluginSettings.selectedGroup].length - 1);
+					}
 
 					var toOpen = resBookmarks[pluginSettings.selectedGroup][randomIndex];
 					openBookmarks([ toOpen ], false, tabInfo);
@@ -243,7 +247,9 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 	if (forceNewTab == null) {
 		forceNewTab = false;
 	}
-		
+
+	console.log(bookmarksArray);
+
 	for(var i = 0; i < bookmarksArray.length; i++) {
 		if (forceNewTab) {			
 			browser.tabs.create({ 

@@ -171,10 +171,12 @@ editBookmarkGroup.onclick = function() {
                 return obj.id === selected;
             });
 
+            console.log(editGroupInfo.name);
+
             editGroupInfo.name = nameEdit.trim();
             saveBookmarks();
 
-            bookmarkGroups.options[bookmarkGroups.selectedIndex].appendChild(document.createTextNode(nameEdit));
+            bookmarkGroups.options[bookmarkGroups.selectedIndex].textContent = nameEdit;
             
             groupsChanged();
         }

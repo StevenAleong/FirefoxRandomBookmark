@@ -100,6 +100,8 @@ function loadContextMenus() {
     });
 };
 
+/// Set up the interactive icon action button at the top of the browser
+/// When there's more than 5 bookmark groups, it'll group them into it's own dropdown for the right click action
 function loadBrowserActionGroups() {
     logToDebugConsole('loadBrowserActionGroups');
 

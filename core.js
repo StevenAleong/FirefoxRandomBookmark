@@ -23,7 +23,14 @@ function loadUserSettings() {
 
     var userOptions = browser.storage.sync.get();
     userOptions.then((resSync) => {
-        pluginSettings.randomOption = resSync.randomOption === 'bybookmark' ? 'bybookmark' : 'default';
+		var randomOpt = 'default';
+		if (resSync.randomOption === 'bybookmark') {
+			randomOpt = 'bybookmark';
+		} else if (resSync.randomOption === 'alphabetical') {
+			randomOpt = 'alphabetical';
+		}
+		
+        pluginSettings.randomOption = randomOpt;
         pluginSettings.tabSetActive = typeof resSync.setActive !== 'undefined' ? resSync.setActive : true;
         pluginSettings.showContextMenu = typeof resSync.showContextMenu !== 'undefined' ? resSync.showContextMenu : false;  
         pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== 'undefined' ? resSync.showContextOpenCountMenu : false;  
@@ -216,7 +223,7 @@ function createContextOption(id, name, parent) {
 	});
 };
 
-function preloadBookmarksIntoLocalStorage(source) {
+function preloadBookmarksIntoLocalStorage(source) {	
     logToDebugConsole('preloadBookmarksIntoLocalStorage', { 'source': source, 'pluginSettings': pluginSettings });
 
     if (pluginSettings.loadingBookmarks === false) {
@@ -235,7 +242,7 @@ function preloadBookmarksIntoLocalStorage(source) {
             if (found.length) {
                 var group = found[0];
                 
-                if (group.reload) {
+                if (group.reload) {					
                     loadBookmarksIntoLocalStorage(group.id, group.selected);
     
                 }  else {
@@ -290,7 +297,8 @@ function processBookmarkPromises(id, promises) {
         var bookmarksToSave = [];
 
         results.forEach(result => {
-            console.log(result);
+            logToDebugConsole('processBookmarkPromises Result', result);
+			
             if (result.state === 'fulfilled'){
                 //console.log('succeeded', result.value);
 
@@ -310,8 +318,14 @@ function processBookmarkPromises(id, promises) {
         var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
             return index === self.indexOf(elem);
         });
-
-        Shuffle(uniqueBookmarks);
+				
+		if (pluginSettings.randomOption === 'alphabetical') {
+			uniqueBookmarks.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
+		} else {
+			Shuffle(uniqueBookmarks);
+		}
+		
+		logToDebugConsole('Bookmarks to store', uniqueBookmarks);
 
         browser.storage.local.set({
             [id]: uniqueBookmarks
@@ -324,7 +338,7 @@ function processBookmarkPromises(id, promises) {
 };
 
 function processBookmarks(bookmarkItem, goDeeper) {
-    logToDebugConsole('processBookmarks', { 'bookmarkItem': bookmarkItem, 'goDeeper': goDeeper });
+    //logToDebugConsole('processBookmarks', { 'bookmarkItem': bookmarkItem, 'goDeeper': goDeeper });
 
     var bookmarksCollection = [];
 
@@ -334,7 +348,6 @@ function processBookmarks(bookmarkItem, goDeeper) {
 
     } else if (bookmarkItem.type === 'bookmark') {
         bookmarksCollection.push(bookmarkItem.url);
-
     }
 
     if (bookmarkItem.children && goDeeper) {
@@ -344,7 +357,6 @@ function processBookmarks(bookmarkItem, goDeeper) {
         }
     }
 
-
     return bookmarksCollection;
 };
 
@@ -353,11 +365,11 @@ function getBookmarks(bookmarkFolder) {
     
     var bookmarksCollection = [];
     if (typeof bookmarkFolder !== 'undefined' && bookmarkFolder !== null)
-    for (var i = 0; i < bookmarkFolder.length; i++) {
-        if (bookmarkFolder[i].type === 'bookmark') {
-            bookmarksCollection.push(bookmarkFolder[i].url);
-        }
-    }
+		for (var i = 0; i < bookmarkFolder.length; i++) {
+			if (bookmarkFolder[i].type === 'bookmark') {
+				bookmarksCollection.push(bookmarkFolder[i].url);
+			}
+		}
 
     return bookmarksCollection;
 };

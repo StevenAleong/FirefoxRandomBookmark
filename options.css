@@ -5,3 +5,11 @@ body {
 .info {
 	font-size: 0.8em;
 }
+
+.save-alert {
+	position: fixed;
+	bottom: 15px;
+	right: 15px;
+	border-radius: 3px;
+	display: none;
+}

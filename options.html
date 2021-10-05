@@ -2,6 +2,8 @@
 <html>
 <head>
     <meta charset="utf-8" />
+	
+	<title>Random Bookmark Options</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
 
@@ -11,38 +13,43 @@
     <div class="container pb-5">
         <div class="row justify-content-center">
             <div class="col-xl-10">
-                <h1 class="text-center"><img src="icons/icon-38.png" /> Random Bookmark Settings</h1>
-                <hr />
-				
-				<div class="alert alert-info text-center">
-					Your settings are saved automatically when you change them!<br />
-					You can close this window/tab when you're done making changes.
-				</div>
-        
+                <h1 class="text-center py-5"><img src="icons/icon-38.png" /> Random Bookmark Options</h1>
+				        
                 <form id="options-form">
                     <div class="my-3">
+                        <hr />
                         <h2>Randomize Method</h2>
 						
 						<p>
                             Your bookmark groups are preloaded and shuffled into storage. 
-                            If you change your bookmarks (add/edit/delete), the addon will reload and shuffle your bookmark groups again.
+                            If you change your bookmarks (add/edit/delete), the add-on will reload and shuffle your bookmark groups again.
 						</p>
         
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input class="form-check-input" type="radio" name="randomoption" id="randomoption-default" value="default" checked />
                             <label class="form-check-label" for="randomoption-default">
+								<b>Always Random</b><br />
 								Pick a random bookmark each time.
                             </label>
                         </div>
                         
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input class="form-check-input" type="radio" name="randomoption" id="randomoption-bybookmark" value="bybookmark" />
                             <label class="form-check-label" for="randomoption-bybookmark">
-                                On each click, starting from the first bookmark, the plugin will go to the next one and so on and loop when it reaches the end.
+                                <b>Shuffled Order</b><br />
+								Shuffle the selected group first and then on each click, the add-on will go to the next one and so on and loop when it reaches the end.
                             </label>
                         </div>
 
-                        <Hr />
+                        <div class="form-check" title="Yes, I know it's not very random, not random at all.">
+                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-alphabetical" value="alphabetical" />
+                            <label class="form-check-label" for="randomoption-alphabetical">
+                                <b>Alphabetical</b><br />
+								Order the selected group alphabetically by URL and then go through each one on each click and loop when it reaches the end.
+                            </label>
+                        </div>
+
+                        <hr />
         
                         <h2>Tab Options</h2>
                                 
@@ -122,7 +129,7 @@
                     <h2>Bookmarks</h2>
 
                     <div class="alert alert-info">
-                        If no bookmark folders are selected, the addon will use all of your bookmarks.<br />
+                        If no bookmark folders are selected, the add-on will use all of your bookmarks.<br />
                         Selecting a parent folder will not load any bookmarks from the children. The plugin only looks for 
                         bookmarks in the selected folders.<br /><br />
 
@@ -195,6 +202,10 @@
         </div>
         
     </div>
+	
+	<div id="save-message" class="save-alert alert alert-info">
+		Options Saved!
+	</div>
     
     <script src="shared.js"></script>
     <script src="core.js"></script>

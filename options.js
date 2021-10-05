@@ -69,6 +69,9 @@ radioRandomizeDefault.addEventListener('change', function() { saveSettings(setti
 var radioRandomizeByBookmark = document.getElementById('randomoption-bybookmark');
 radioRandomizeByBookmark.addEventListener('change', function() { saveSettings(settingsEnum.RANDOMIZEMETHOD); });
 
+var radioRandomizeAlphbetical = document.getElementById('randomoption-alphabetical');
+radioRandomizeAlphbetical.addEventListener('change', function() { saveSettings(settingsEnum.RANDOMIZEMETHOD); });
+
 // Tab Options
 // -------------------------------------------------------------
 var checkboxSetTabActive = document.getElementById('activeoption');
@@ -171,7 +174,7 @@ editBookmarkGroup.onclick = function() {
                 return obj.id === selected;
             });
 
-            console.log(editGroupInfo.name);
+            //console.log(editGroupInfo.name);
 
             editGroupInfo.name = nameEdit.trim();
             saveBookmarks();
@@ -227,12 +230,17 @@ function saveSettings(option) {
                 var randomOption = 'default';
                 if (document.getElementById('randomoption-bybookmark').checked) {
                     randomOption = 'bybookmark';
-                }
+                } else if (document.getElementById('randomoption-alphabetical').checked) {
+					randomOption = 'alphabetical';
+				}
     
                 browser.storage.sync.set({
                     randomOption: randomOption
                 });
-    
+				
+				pluginSettings.randomOption = randomOption;								
+				preloadBookmarksIntoLocalStorage('saveSettings');
+				    
                 break;
     
             case settingsEnum.TABACTIVE:
@@ -282,7 +290,16 @@ function saveSettings(option) {
 				});
                 break;
         }
+				
+		showSavedMessage();
     }    
+};
+
+function showSavedMessage() {
+	document.getElementById('save-message').style.display = 'block';
+	setTimeout(function() {
+		document.getElementById('save-message').style.display = 'none';
+	}, 1500);
 };
 
 function loadSavedOptions() {
@@ -291,8 +308,11 @@ function loadSavedOptions() {
                 
         if (syncRes.randomOption === 'bybookmark') {
             document.getElementById('randomoption-bybookmark').checked = true;
-            randomizeMethod = 'bybookmark';
-        }
+            randomizeMethod = 'bybookmark';			
+        } else if (syncRes.randomOption === 'alphabetical') {
+            document.getElementById('randomoption-alphabetical').checked = true;
+            randomizeMethod = 'alphabetical';			
+		}
 
         document.getElementById('activeoption').checked = syncRes.setActive;
 
@@ -308,7 +328,7 @@ function loadSavedOptions() {
 
         document.getElementById('showActionNotice').checked = syncRes.showActionNotice;
 		
-            // Port over selectedFolders to groups json
+		// Port over selectedFolders to groups json
         if (syncRes.selectedFolders && syncRes.selectedFolders.length) {
             bookmarkGroupSettings = changeToGroups(syncRes.selectedFolders);      
 
@@ -419,7 +439,7 @@ function loadSelectedBookmarks(groupID) {
 	
 }
 
-function processBookmarks(bookmarkItem, indent, parentID) {
+function options_processBookmarks(bookmarkItem, indent, parentID) {
     if (bookmarkItem.type === 'folder' && bookmarkItem.title !== '') {
         var countOfBookmarks = 0;
         for (var i = 0; i < bookmarkItem.children.length; i++) {
@@ -499,7 +519,7 @@ function processBookmarks(bookmarkItem, indent, parentID) {
 
     if (bookmarkItem.children) {
         for (child of bookmarkItem.children) {
-            processBookmarks(child, indent, bookmarkItem.id);
+            options_processBookmarks(child, indent, bookmarkItem.id);
         }
     }
 
@@ -519,6 +539,8 @@ function saveBookmarks() {
     browser.storage.sync.set({
         groups: bookmarkGroupSettings
     });
+	
+	showSavedMessage();
 };
 
 function groupsChanged() {
@@ -535,7 +557,7 @@ function loadUsedSpaceSize() {
 function setup() { 
     var bookmarksTree = browser.bookmarks.getTree();
     bookmarksTree.then(function(bookmarkItem) {
-        processBookmarks(bookmarkItem[0], 0, 'root');
+        options_processBookmarks(bookmarkItem[0], 0, 'root');
         loadSavedOptions();
 
     }, function(error) {

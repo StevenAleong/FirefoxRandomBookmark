@@ -7,7 +7,7 @@
 	},
     "manifest_version": 2,
     "name": "Random Bookmark",
-    "version": "2.0.12",
+    "version": "2.1.0",
     "description": "Load up a random bookmark! Features: Create groups of bookmark folders to randomize from, randomize a folder with right click, tab options, and more! Does not work with Firefox for Android unfortunately, add-ons are not able to access bookmarks on androids.",
     "icons": {
 		"48": "icons/icon-48.png",

@@ -57,11 +57,11 @@ function handleBrowserClickAction(tabInfo) {
         currentGroupGet.then((resBookmarks) => {
 			// resBookmarks is the array of bookmarks for the groups
 			if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
-				showNotification("No bookmarks found", "Start adding bookmarks first or check the addon settings");
+				showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
 				
 			} else {		
 					
-				if (pluginSettings.randomOption === 'bybookmark') {
+				if (pluginSettings.randomOption === 'bybookmark' || pluginSettings.randomOption === 'alphabetical') {
 					var groupIndex = 0;
 					var groupIndexName = pluginSettings.selectedGroup + '_index';
 					var currentGroupIndexGet = browser.storage.local.get(groupIndexName);
@@ -217,7 +217,7 @@ function handleTheBookmarks(source) {
     // Set all bookmark groups to reload
     var userSyncOptions = browser.storage.sync.get();
     userSyncOptions.then((syncRes) => {
-		console.log(syncRes);
+		logToDebugConsole('handleTheBookmarks', { 'syncRes': syncRes });
         if (syncRes.groups) {
             var bookmarkGroups = syncRes.groups;
 
@@ -248,7 +248,7 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 		forceNewTab = false;
 	}
 
-	console.log(bookmarksArray);
+	logToDebugConsole(bookmarksArray);
 
 	for(var i = 0; i < bookmarksArray.length; i++) {
 		if (forceNewTab) {			

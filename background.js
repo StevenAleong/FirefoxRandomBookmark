@@ -3,7 +3,9 @@ function init() {
 
     loadUserSettings();
     loadContextMenus();
-	loadBrowserActionGroups();
+
+	// Delay preloading of bookmarks a bit more
+	setTimeout(loadBrowserActionGroups, 5000);
 
     // Watch for when the user clicks on the browser action
     browser.browserAction.onClicked.addListener(handleBrowserClickAction);
@@ -34,12 +36,8 @@ function showNotification(title, msg) {
 
 function handleBrowserClickAction(tabInfo) {
 	logToDebugConsole('handleBrowserClickAction');
-	// var allStorage = browser.storage.local.get(null);
-	// allStorage.then((all) => {
-		// console.log(all);
-	// });
 
-    if (pluginSettings.loadingBookmarks || pluginSettings.loadingGroups) {
+    if (pluginSettings.initialLoading || pluginSettings.loadingBookmarks || pluginSettings.loadingGroups) {
         showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded. If this pop up keeps showing up after a minute, please go to the options page and scroll to the bottom and clear out all add-on data, and then reinstall the plugin. Sorry.");
 
 		if (sessionInfo.loadingDateTimeStarted !== null) {
@@ -336,17 +334,11 @@ browser.runtime.onInstalled.addListener(async({ reason, temporary }) => {
 
     switch (reason) {
         case 'install':
-            //browser.runtime.openOptionsPage();
-			//const installUrl = browser.runtime.getURL('options.html');
-			//await browser.tabs.create({ installUrl });
-			
+            browser.runtime.openOptionsPage();
             break;
 			
 		case 'update':
-			browser.runtime.openOptionsPage();
-			//const updateUrl = browser.runtime.getURL('options.html');
-			//await browser.tabs.create({ updateUrl });
-			
+			//browser.runtime.openOptionsPage();
 			break;
     }
 

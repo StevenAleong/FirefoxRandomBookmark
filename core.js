@@ -7,6 +7,7 @@ var pluginSettings = {
     contextMenuName: 'randombookmarkContext',
     loadingGroups: false,
     loadingBookmarks: false,
+    initialLoading: true,
     selectedGroup: 'default',
     browserAction: [],
     isDebugging: false,
@@ -247,7 +248,7 @@ function preloadBookmarksIntoLocalStorage(source) {
     
                 }  else {
                     setTimeout(function() {
-                        pluginSettings.loadingBookmarks = false;
+                        finishedLoading();
                     }, 250);
                     
                     sessionInfo.loadingDateTimeStarted = null;
@@ -256,7 +257,7 @@ function preloadBookmarksIntoLocalStorage(source) {
                 
             } else {
                 setTimeout(function() {
-                    pluginSettings.loadingBookmarks = false;
+                    finishedLoading();
                 }, 250);
 
                 sessionInfo.loadingDateTimeStarted = null;
@@ -332,7 +333,7 @@ function processBookmarkPromises(id, promises) {
         });
 
         setTimeout(function() {
-            pluginSettings.loadingBookmarks = false;
+            finishedLoading();
         }, 250);
     });
 };
@@ -372,6 +373,11 @@ function getBookmarks(bookmarkFolder) {
 		}
 
     return bookmarksCollection;
+};
+
+function finishedLoading() {
+    pluginSettings.loadingBookmarks = false;
+    pluginSettings.initialLoading = false;
 };
 
 function onError(e) {

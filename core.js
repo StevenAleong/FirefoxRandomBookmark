@@ -2,6 +2,8 @@ var pluginSettings = {
     randomOption: 'default',
     tabOption: 'default',
     tabSetActive: true,
+    randomizeHistory: false,
+    maxHistory: 10,
     showContextMenu: false,
 	showContextOpenCountMenu: false,
     contextMenuName: 'randombookmarkContext',
@@ -33,6 +35,7 @@ function loadUserSettings() {
 		
         pluginSettings.randomOption = randomOpt;
         pluginSettings.tabSetActive = typeof resSync.setActive !== 'undefined' ? resSync.setActive : true;
+        pluginSettings.randomizeHistory = typeof resSync.randomizeHistory !== 'undefined' ? resSync.randomizeHistory : false;
         pluginSettings.showContextMenu = typeof resSync.showContextMenu !== 'undefined' ? resSync.showContextMenu : false;  
         pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== 'undefined' ? resSync.showContextOpenCountMenu : false;  
         pluginSettings.showActionNotice = typeof resSync.showActionNotice !== 'undefined' ? resSync.showActionNotice : false; 
@@ -142,8 +145,6 @@ function loadBrowserActionGroups() {
 
                 var parentId;
 
-                //console.log(bookmarkGroupSettings);
-
                 if (bookmarkGroupSettings.length > 5) {
                     // Add the bookmark groups menu option
                     browser.menus.create({
@@ -171,7 +172,20 @@ function loadBrowserActionGroups() {
 			} else {
 				createContextOption('default', 'Default');
             }
-            
+
+            browser.menus.create({
+                id: 'random-bookmark-options',
+                type: 'normal',
+                title: 'Help',
+                contexts: ['browser_action'],
+                icons: {
+                    "16": "icons/bookmark-star-16.png",
+                    "32": "icons/bookmark-star-32.png"
+                }
+            }, function() {
+                pluginSettings.browserAction.push('random-bookmark-options');
+            });
+
             // Add a shortcut to the options page
             browser.menus.create({
                 id: 'options-page',
@@ -181,9 +195,41 @@ function loadBrowserActionGroups() {
                 icons: {
                     "16": "icons/gear-16.png",
                     "32": "icons/gear-32.png"
-                }
+                },
+                parentId: 'random-bookmark-options'
             }, function() {
                 pluginSettings.browserAction.push('options-page');
+            });
+
+            // Will be used to update and show the last path
+            browser.menus.create({
+                id: 'last-bookmark-path',
+                type: 'normal',
+                title: '[Last Bookmark Path]',
+                contexts: ['browser_action'],
+                visible: false,
+                icons: {
+                    "16": "icons/asterisk-16.png",
+                    "32": "icons/asterisk-32.png"
+                },
+                parentId: 'random-bookmark-options'
+            }, function() {
+                pluginSettings.browserAction.push('last-bookmark-path');
+            });
+
+            // Add shortcut to plugin page on firefox add-ons
+            browser.menus.create({
+                id: 'plugin-page',
+                type: 'normal',
+                title: 'Random Bookmark Add-on Info',
+                contexts: ['browser_action'],
+                icons: {
+                    "16": "icons/globe-16.png",
+                    "32": "icons/globe-32.png"
+                },
+                parentId: 'random-bookmark-options'
+            }, function() {
+                pluginSettings.browserAction.push('plugin-page');
             });
 
 			// Check/preload the currently selected menu
@@ -301,8 +347,6 @@ function processBookmarkPromises(id, promises) {
             logToDebugConsole('processBookmarkPromises Result', result);
 			
             if (result.state === 'fulfilled'){
-                //console.log('succeeded', result.value);
-
                 for(var i = 0; i < result.value.length; i++) {
                     var r = processBookmarks(result.value[i], result.value[i].id === 'root________');
                     bookmarksToSave = bookmarksToSave.concat(r);
@@ -348,7 +392,7 @@ function processBookmarks(bookmarkItem, goDeeper) {
         bookmarksCollection = bookmarksCollection.concat(result);
 
     } else if (bookmarkItem.type === 'bookmark') {
-        bookmarksCollection.push(bookmarkItem.url);
+        bookmarksCollection.push(bookmarkItem.id);
     }
 
     if (bookmarkItem.children && goDeeper) {
@@ -368,7 +412,7 @@ function getBookmarks(bookmarkFolder) {
     if (typeof bookmarkFolder !== 'undefined' && bookmarkFolder !== null)
 		for (var i = 0; i < bookmarkFolder.length; i++) {
 			if (bookmarkFolder[i].type === 'bookmark') {
-				bookmarksCollection.push(bookmarkFolder[i].url);
+				bookmarksCollection.push(bookmarkFolder[i].id);
 			}
 		}
 
@@ -403,3 +447,17 @@ function settlePromises(arr){
         );
     }));
 };
+
+async function getBookmarkPath(bookmarkId) {
+	let path = [];
+	let currentId = bookmarkId;
+  
+	while (currentId) {
+	  // Get the current bookmark or folder
+	  let [currentBookmark] = await browser.bookmarks.get(currentId);
+	  path.unshift(currentBookmark.title); // Add the title to the path
+	  currentId = currentBookmark.parentId; // Move to the parent
+	}
+  
+	return path.slice(0, -1).filter(Boolean).join(" > ");
+}

@@ -21,18 +21,18 @@ function init() {
     browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
     browser.bookmarks.onMoved.addListener(handleBookmarksMovedAction);
     browser.bookmarks.onRemoved.addListener(handleBookmarksRemovedAction);
-};
+}
 
 function showNotification(title, msg) {
 	logToDebugConsole('showNotification');
 
     browser.notifications.create('random-bookmark-loading-notification', {
-        "type": "basic",
-        "title": title,
-        "message": msg
+        type: 'basic',
+		iconUrl: browser.runtime.getURL('icons/icon-96.png'),
+        title: title,
+        message: msg
     });
-};
-
+}
 
 function handleBrowserClickAction(tabInfo) {
 	logToDebugConsole('handleBrowserClickAction');
@@ -50,9 +50,13 @@ function handleBrowserClickAction(tabInfo) {
 		}
 
     } else {
+		logToDebugConsole('pluginSettings.selectedGroup', pluginSettings.selectedGroup);
+
 		var currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
 
         currentGroupGet.then((resBookmarks) => {
+			
+
 			// resBookmarks is the array of bookmarks for the groups
 			if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
 				showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
@@ -73,11 +77,15 @@ function handleBrowserClickAction(tabInfo) {
 						}
 
 						// Get the bookmark
-						var urlToOpen = resBookmarks[pluginSettings.selectedGroup][groupIndex];
+						var bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
 						
 						// Open it
-						openBookmarks([ urlToOpen ], false, tabInfo);
-
+						browser.bookmarks
+							.get(bookmarkId)
+							.then((result) => {
+								openBookmarks(result, false, tabInfo);
+							});
+						
 						// Show notice
 						if (pluginSettings.showActionNotice === true) {
 							showNotification('Information', 'Showing bookmark ' + (groupIndex + 1) + '/' + resBookmarks[pluginSettings.selectedGroup].length);
@@ -99,20 +107,39 @@ function handleBrowserClickAction(tabInfo) {
 						randomIndex = r.Next(0, resBookmarks[pluginSettings.selectedGroup].length - 1);
 					}
 
-					var toOpen = resBookmarks[pluginSettings.selectedGroup][randomIndex];
-					openBookmarks([ toOpen ], false, tabInfo);
-					
+					var bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
+					browser.bookmarks
+						.get(bookmarkId)
+						.then((result) => {
+							openBookmarks(result, false, tabInfo);
+						});
+											
 				}
 
 			}			
         });
     }    
-};
+}
 
 function handleMenuClickAction(info, tab) {
-	logToDebugConsole('handleMenuClickAction');
+	logToDebugConsole('handleMenuClickAction', info, tab);
 
-	if (tab === undefined) {
+	// Browser Action group change
+	if (info.menuItemId.toString() === 'options-page') {
+		logToDebugConsole('Open the options page');
+		browser.runtime.openOptionsPage();
+
+	} else if (info.menuItemId.toString() === 'plugin-page') {
+		logToDebugConsole('Open plugin page');
+		browser.tabs.create({
+			url: 'https://addons.mozilla.org/en-US/firefox/addon/random-bookmark-addon/',
+			active: true
+		});
+
+	} else if (info.menuItemId.toString() === 'last-bookmark-path') {
+		// user clicked on last bookmark path, dont do anything currently. Maybe open the url again?
+
+	} else if (tab === undefined) {
 		// Context click
 		var bookmarksToOpen = 1;
 		if (info.menuItemId.startsWith('open-random')) {
@@ -137,23 +164,31 @@ function handleMenuClickAction(info, tab) {
 				
 				for(child of children) {
 					if (child.type === 'bookmark') {
-						folderBookmarks.push(child.url);
+						folderBookmarks.push(child.id);
 					}						
 				}
+
+				if (folderBookmarks.length > 0) {
+					Shuffle(folderBookmarks);
 				
-				Shuffle(folderBookmarks);
-				
-				var toOpen = folderBookmarks.slice(0, bookmarksToOpen);
-				openBookmarks(toOpen, true);
+					var toOpen = folderBookmarks.slice(0, bookmarksToOpen);
+	
+					logToDebugConsole('toOpen', toOpen);
+	
+					browser.bookmarks
+						.get(toOpen)
+						.then((result) => {
+							openBookmarks(result, true);
+						});
+				} else {
+					showNotification("Random Bookmark Alert", "No bookmarks found in this folder, this does not look in child folders, only the current folder.");
+				}
+
 			});
 		});			
 		
 	} else {
-		// Browser Action group change
-		if (info.menuItemId.toString() === 'options-page') {
-			var openingPage = browser.runtime.openOptionsPage();
-
-		} else if (pluginSettings.loadingBookmarks) {
+		if (pluginSettings.loadingBookmarks) {
 			// Reload the context menus because I don't know how else to reselect the previous selected menu
 			loadBrowserActionGroups();
 
@@ -170,7 +205,7 @@ function handleMenuClickAction(info, tab) {
 		}
         
     }
-};
+}
 
 function handleStorageChangeAction(changes, area) {
 	logToDebugConsole('handleStorageChangeAction', { 'changes': changes, 'area': area });
@@ -185,28 +220,27 @@ function handleStorageChangeAction(changes, area) {
 		
 		loadUserSettings();
     }
-};
+}
 
 function handleBookmarksCreatedAction() {
 	logToDebugConsole('handleBookmarksCreatedAction');
 	handleTheBookmarks('handleBookmarksCreatedAction');
-};
+}
 
 function handleBookmarksMovedAction() {
 	logToDebugConsole('handleBookmarksMovedAction');
 	handleTheBookmarks('handleBookmarksMovedAction');
-};
+}
 
 function handleBookmarksRemovedAction() {
 	logToDebugConsole('handleBookmarksRemovedAction');
 	handleTheBookmarks('handleBookmarksRemovedAction');
-};
+}
 
 function handleBookmarksChangedAction(id, changeInfo) {
 	logToDebugConsole('handleBookmarksChangedAction', { 'id': id, 'changeInfo': changeInfo });
-
 	handleTheBookmarks('handleBookmarksChangedAction');	
-};
+}
 
 function handleTheBookmarks(source) {
 	logToDebugConsole('handleTheBookmarks', { 'source': source });
@@ -237,29 +271,42 @@ function handleTheBookmarks(source) {
             preloadBookmarksIntoLocalStorage('handleTheBookmarks');
         }
     });
-};
+}
 
-async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
+/**
+ * The main function to handle the opening of a bookmark.
+ * Used by when the user clicks on the context menu or the browser action button
+ * 
+ * @param array bookmarks 
+ * @param boolean forceNewTab 
+ * @param object tabInfo 
+ */
+function openBookmarks(bookmarks, forceNewTab, tabInfo) {
 	logToDebugConsole('openBookmarks');
 
 	if (forceNewTab == null) {
 		forceNewTab = false;
 	}
 
-	logToDebugConsole(bookmarksArray);
+	logToDebugConsole(bookmarks);
 
-	for(var i = 0; i < bookmarksArray.length; i++) {
+	bookmarks.forEach((bookmark, index) => {
+		logToDebugConsole('bookmark', bookmark);
+
+		processHistory(bookmark);
+
 		if (forceNewTab) {			
+			// Context clicked to open random bookmarks from a folder
 			browser.tabs.create({ 
-				active: i == 0,
-				url: bookmarksArray[i]
+				active: index == 0,
+				url: bookmark.url
 			});
-			
+
 		} else {
 			if (pluginSettings.tabOption === 'newTab') {
 				browser.tabs.create({ 
 					active: pluginSettings.tabSetActive,
-					url: bookmarksArray[0]
+					url: bookmark.url
 				});
 				
 			} else if (pluginSettings.tabOption === 'currentTab' && tabInfo != null) {
@@ -268,7 +315,7 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 					{
 						active: pluginSettings.tabSetActive,
 						highlighted: pluginSettings.tabSetActive,
-						url: bookmarksArray[0]
+						url: bookmark.url
 					}
 				);				
 				
@@ -276,7 +323,7 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 				if (sessionInfo.currentTabId === 0) {
 					var newTabInfo = browser.tabs.create({
 						active: pluginSettings.tabSetActive,
-						url: bookmarksArray[0]
+						url: bookmark.url
 					});
 
 					newTabInfo.then((resNewTab) => {
@@ -284,40 +331,81 @@ async function openBookmarks(bookmarksArray, forceNewTab, tabInfo) {
 					});
 
 				} else {
-					try {
-						var getTab = await browser.tabs.get(sessionInfo.currentTabId);
-						
-						browser.tabs.update(
-							getTab.id,
-							{
-								active: pluginSettings.tabSetActive,
-								highlighted: pluginSettings.tabSetActive,
-								url: bookmarksArray[0]
-							}
-						);
-						
-						if (pluginSettings.tabSetActive) {
-							browser.windows.update(getTab.windowId, {
-								focused: true
-							});
-						}
-						
+					// Check for the newly created tab and then keep using it
+					// if it doesn't exist, create a new one and use that one.
+					browser.tabs.get(sessionInfo.currentTabId)
+						.then((tab) => {
+							logToDebugConsole('tab', tab);
 
-					} catch (error) {
-						var newTabInfo = browser.tabs.create({
-							active: pluginSettings.tabSetActive,
-							url: bookmarksArray[0]
-						});
+							browser.tabs.update(
+								tab.id,
+								{
+									active: pluginSettings.tabSetActive,
+									highlighted: pluginSettings.tabSetActive,
+									url: bookmark.url,
+								}
+							);
+
+							if (pluginSettings.tabSetActive) {
+								browser.windows.update(
+									tab.windowId, {
+									focused: true
+								});
+							}
+
+							sessionInfo.currentTabId = tab.id;
+						},
+						(failed) => {
+							logToDebugConsole('failed', failed);
+
+							var newTabInfo = browser.tabs.create({
+								active: pluginSettings.tabSetActive,
+								url: bookmark.url
+							});
 	
-						newTabInfo.then((resNewTab) => {
-							sessionInfo.currentTabId = resNewTab.id;
+							newTabInfo.then((resNewTab) => {
+								sessionInfo.currentTabId = resNewTab.id;
+							});
 						});
-					}
 				}				
-			}			
+			}		
 		}
+	});
+
+}
+
+async function processHistory(bookmark) {
+	const path = await getBookmarkPath(bookmark.id);
+	
+	// Update the menu with the path of the last randomized bookmark
+	browser.menus.update(
+		'last-bookmark-path',
+		{
+			title: path,
+			visible: true
+		}
+	);
+
+	// If enabled, save to local storage
+	if (pluginSettings.randomizeHistory) {
+		logToDebugConsole('Save history');
+
+		const historyCollection = JSON.parse(localStorage.getItem('randomized-history')) || [];
+
+		historyCollection.unshift({
+			bookmark,
+			dateRandomized: new Date().toISOString()
+		});
+
+		if (historyCollection.length > pluginSettings.maxHistory) {
+			historyCollection.pop();
+		}
+
+		logToDebugConsole('historyCollection', historyCollection);
+
+		localStorage.setItem('randomized-history', JSON.stringify(historyCollection));
 	}
-};
+}
 
 init();
 
@@ -338,6 +426,8 @@ browser.runtime.onInstalled.addListener(async({ reason, temporary }) => {
             break;
 			
 		case 'update':
+			// We've updated how we're updating the bookmarks, just force restore of localstorage.
+			handleTheBookmarks('pluginupdated');
 			//browser.runtime.openOptionsPage();
 			break;
     }

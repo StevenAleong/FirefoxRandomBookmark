@@ -5,7 +5,8 @@ const settingsEnum = {
     CONTEXTMENU: 'contextmenu',
     GROUP: 'bookmarkgroups',
     CONTEXTOPENCOUNT: 'contextopencount',
-    SHOWACTIONNOTICE: 'showactionnotice'
+    SHOWACTIONNOTICE: 'showactionnotice',
+    RANDOMIZEHISTORY: 'randomizeHistory',
 };
 
 var loading = true;
@@ -27,6 +28,8 @@ selectAll.onclick = function() {
 	} 
 };
 
+var randomizedHistoryTracking = false;
+
 // Close Settings
 // -------------------------------------------------------------
 // var closeSettings = document.getElementById('action-close');
@@ -42,6 +45,7 @@ var btnClearData = document.getElementById('action-clear-data');
 btnClearData.onclick = function(e) {
     browser.storage.sync.clear();
     browser.storage.local.clear();
+    localStorage.removeItem('randomized-history');
 	location.reload(); 
 };
 
@@ -87,6 +91,11 @@ radioOpenOptionNew.addEventListener('change', function() { saveSettings(settings
 
 var radioOpenOptionCurrent = document.getElementById('openoption-current');
 radioOpenOptionCurrent.addEventListener('change', function() { saveSettings(settingsEnum.TABOPTION); });
+
+// Bookmark Path Options
+// -------------------------------------------------------------
+var checkboxRandomizeHistory = document.getElementById('randomizeHistory');
+checkboxRandomizeHistory.addEventListener('change', function() { saveSettings(settingsEnum.RANDOMIZEHISTORY); });
 
 // Context Options
 // -------------------------------------------------------------
@@ -174,8 +183,6 @@ editBookmarkGroup.onclick = function() {
                 return obj.id === selected;
             });
 
-            //console.log(editGroupInfo.name);
-
             editGroupInfo.name = nameEdit.trim();
             saveBookmarks();
 
@@ -244,10 +251,8 @@ function saveSettings(option) {
                 break;
     
             case settingsEnum.TABACTIVE:
-                var setActive = document.getElementById('activeoption').checked;
-
                 browser.storage.sync.set({
-                    setActive: setActive
+                    setActive: document.getElementById('activeoption').checked
                 });
                 break;
     
@@ -265,28 +270,39 @@ function saveSettings(option) {
                 });
                 break;
 
-            case settingsEnum.CONTEXTMENU:
-                var showContextMenu = document.getElementById('showContextMenu').checked;
-    
+            case settingsEnum.RANDOMIZEHISTORY:
+                randomizedHistoryTracking = document.getElementById('randomizeHistory').checked;                
+                
                 browser.storage.sync.set({
-                    showContextMenu: showContextMenu
+                    randomizeHistory: randomizedHistoryTracking
+                });
+
+                document.getElementById('history-list-wrapper').style.display = randomizedHistoryTracking ? 'block' : 'none';
+
+                if (!randomizedHistoryTracking) {
+                    localStorage.removeItem('randomized-history');
+
+                    loadRandomizeHistory([]);        
+                }
+                break;
+
+            case settingsEnum.CONTEXTMENU:
+                browser.storage.sync.set({
+                    showContextMenu: document.getElementById('showContextMenu').checked
                 });
                 groupsChanged();
                 break;
 				
 			case settingsEnum.CONTEXTOPENCOUNT:
-				var showContextOpenCountMenu = document.getElementById('showContextOpenCountMenu').checked;
-				
 				browser.storage.sync.set({
-					showContextOpenCountMenu: showContextOpenCountMenu
+					showContextOpenCountMenu: document.getElementById('showContextOpenCountMenu').checked
 				});
                 groupsChanged();
                 break;
                 
             case settingsEnum.SHOWACTIONNOTICE:
-                var showActionNotice = document.getElementById('showActionNotice').checked;
                 browser.storage.sync.set({
-					showActionNotice: showActionNotice
+					showActionNotice: document.getElementById('showActionNotice').checked
 				});
                 break;
         }
@@ -302,56 +318,64 @@ function showSavedMessage() {
 	}, 1500);
 };
 
-function loadSavedOptions() {
-    var userSyncOptions = browser.storage.sync.get();
-    userSyncOptions.then((syncRes) => {
+async function loadSavedOptions() {
+    var syncRes = await browser.storage.sync.get();
+    //userSyncOptions.then((syncRes) => {
                 
-        if (syncRes.randomOption === 'bybookmark') {
-            document.getElementById('randomoption-bybookmark').checked = true;
-            randomizeMethod = 'bybookmark';			
-        } else if (syncRes.randomOption === 'alphabetical') {
-            document.getElementById('randomoption-alphabetical').checked = true;
-            randomizeMethod = 'alphabetical';			
-		}
+    if (syncRes.randomOption === 'bybookmark') {
+        document.getElementById('randomoption-bybookmark').checked = true;
+        randomizeMethod = 'bybookmark';			
+    } else if (syncRes.randomOption === 'alphabetical') {
+        document.getElementById('randomoption-alphabetical').checked = true;
+        randomizeMethod = 'alphabetical';			
+    }
 
-        document.getElementById('activeoption').checked = syncRes.setActive;
+    document.getElementById('activeoption').checked = syncRes.setActive;
 
-        if (syncRes.tabOption === 'newTab') {
-            document.getElementById('openoption-new').checked = true;
-        } else if (syncRes.tabOption === 'currentTab') {
-            document.getElementById('openoption-current').checked = true;
-        }
+    if (syncRes.tabOption === 'newTab') {
+        document.getElementById('openoption-new').checked = true;
+    } else if (syncRes.tabOption === 'currentTab') {
+        document.getElementById('openoption-current').checked = true;
+    }
 
-        document.getElementById('showContextMenu').checked = syncRes.showContextMenu;
-		
-        document.getElementById('showContextOpenCountMenu').checked = syncRes.showContextOpenCountMenu;
+    document.getElementById('randomizeHistory').checked = syncRes.randomizeHistory;
+    randomizedHistoryTracking = syncRes.randomizeHistory;
+    document.getElementById('history-list-wrapper').style.display = randomizedHistoryTracking ? 'block' : 'none';
+    if (randomizedHistoryTracking) {
+        const historyCollection = JSON.parse(localStorage.getItem('randomized-history')) || [];
+        loadRandomizeHistory(historyCollection);
+    }
 
-        document.getElementById('showActionNotice').checked = syncRes.showActionNotice;
-		
-		// Port over selectedFolders to groups json
-        if (syncRes.selectedFolders && syncRes.selectedFolders.length) {
-            bookmarkGroupSettings = changeToGroups(syncRes.selectedFolders);      
+    document.getElementById('showContextMenu').checked = syncRes.showContextMenu;
+    
+    document.getElementById('showContextOpenCountMenu').checked = syncRes.showContextOpenCountMenu;
 
-        } else if (syncRes.groups) {
-            bookmarkGroupSettings = syncRes.groups;
+    document.getElementById('showActionNotice').checked = syncRes.showActionNotice;
+    
+    // Port over selectedFolders to groups json
+    if (syncRes.selectedFolders && syncRes.selectedFolders.length) {
+        bookmarkGroupSettings = changeToGroups(syncRes.selectedFolders);      
 
-        }        
+    } else if (syncRes.groups) {
+        bookmarkGroupSettings = syncRes.groups;
 
-        // Load bookmark groups
-        bookmarkGroupSettings.sort(compareBookmarkGroup);
-        for(var i = 0; i < bookmarkGroupSettings.length; i++) {
-            if (bookmarkGroupSettings[i].id !== 'default') {
-                var newOption = document.createElement('option');
-                newOption.value = bookmarkGroupSettings[i].id;
-                newOption.text = bookmarkGroupSettings[i].name;
-                bookmarkGroups.add(newOption);
-            }                
-        }
+    }        
 
-        loadSelectedBookmarks('default');
+    // Load bookmark groups
+    bookmarkGroupSettings.sort(compareBookmarkGroup);
+    for(var i = 0; i < bookmarkGroupSettings.length; i++) {
+        if (bookmarkGroupSettings[i].id !== 'default') {
+            var newOption = document.createElement('option');
+            newOption.value = bookmarkGroupSettings[i].id;
+            newOption.text = bookmarkGroupSettings[i].name;
+            bookmarkGroups.add(newOption);
+        }                
+    }
 
-        loading = false;
-    });
+    loadSelectedBookmarks('default');
+
+    loading = false;
+    //});
 };
 
 function selectCheckbox(checkbox) {
@@ -553,7 +577,59 @@ function loadUsedSpaceSize() {
 		document.getElementById('used-storage-sync').appendChild(document.createTextNode(r));
 	});
 }
+
+async function loadRandomizeHistory(items) {
+    const listContainer = document.getElementById('randomize-history-list');
+    listContainer.innerHTML = '';
+
+    // Need to handle the list when a user deletes a bookmark
+    const bookmarkIds = items.map(item => item.bookmark?.id);
     
+    const bookmarks = [];
+
+    for (const id of bookmarkIds) {        
+        try {
+            const bookmarkInfo = await browser.bookmarks.get(id);            
+            bookmarks.push(bookmarkInfo[0]);
+        } catch (error) {
+            // console.log('error', error);
+        }
+    }
+
+    // No items found
+    document.getElementById('history-list-none').style.display = bookmarks.length === 0 ? 'block' : 'none';
+
+    for (const item of items) {
+        if (bookmarks.some((bm) => bm.id === item.bookmark.id)) {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+    
+            const path = await getBookmarkPath(item.bookmark.id);
+    
+            const linkElement = document.createElement('a');
+            linkElement.href = item.bookmark.url;
+            linkElement.target = '_blank';
+            linkElement.className = 'fw-bold';
+            linkElement.textContent = item.bookmark.title;
+            listItem.appendChild(linkElement);
+    
+            listItem.appendChild(document.createElement('br'));
+    
+            const savePathSmall = document.createElement('small');
+            savePathSmall.textContent = `Save Path: ${path}`;
+            listItem.appendChild(savePathSmall);
+    
+            listItem.appendChild(document.createElement('br'));
+    
+            const dateRandomizedSmall = document.createElement('small');
+            dateRandomizedSmall.textContent = `Date Randomized: ${new Date(item.dateRandomized).toLocaleString()}`;
+            listItem.appendChild(dateRandomizedSmall);
+    
+            listContainer.appendChild(listItem);
+        }
+    }
+}
+
 function setup() { 
     var bookmarksTree = browser.bookmarks.getTree();
     bookmarksTree.then(function(bookmarkItem) {
@@ -563,8 +639,18 @@ function setup() {
     }, function(error) {
         console.log(`An error: ${error}`);
     }); 
-
 };
 
 document.addEventListener('DOMContentLoaded', setup());
+
+/**
+     * Watches for changes to the randomized history local storage and updates
+     * the listing of randomized history
+     */
+window.addEventListener('storage', (event) => {
+    if (event.key === 'randomized-history' && randomizedHistoryTracking) {
+        const historyArray = JSON.parse(event.newValue);
+        loadRandomizeHistory(historyArray);
+    }
+});
 

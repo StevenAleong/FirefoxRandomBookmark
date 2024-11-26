@@ -2,13 +2,13 @@
     "applications": {
 		"gecko": {
 			"id": "random-bookmark@stevenaleong.com",
-			"strict_min_version": "48.0"
+			"strict_min_version": "57.0"
 		}
 	},
     "manifest_version": 2,
     "name": "Random Bookmark",
-    "version": "2.0.0",
-    "description": "Load up a random bookmark! Features: Create groups of bookmark folders to randomize from, randomize a folder with right click, tab options, and more! Shortcut to change the active bookmark group: Alt+Shift+R. Does not work with Firefox for Android unfortunately, add-ons are not able to access bookmarks on androids.",
+    "version": "2.2.0",
+    "description": "Load up a random bookmark! Features: Create groups of bookmark folders to randomize from, randomize a folder with right click, tab options, and more! Does not work with Firefox for Android unfortunately, add-ons are not able to access bookmarks on androids.",
     "icons": {
 		"48": "icons/icon-48.png",
 		"96": "icons/icon-96.png"
@@ -21,18 +21,21 @@
 		"default_title": "Random Bookmark"
     },
     "background": {
-		"scripts": ["background.js"]
-	},
-	"sidebar_action": {
-		"default_icon": "icons/icon-96.png",
-		"default_title": "Random Bookmark Active Group",
-		"default_panel": "sidebar/panel.html"
+		"scripts": ["shared.js", "core.js", "background.js"]
 	},
 	"commands": {
-		"_execute_sidebar_action": {
+		"_execute_browser_action": {
 			"suggested_key": {
 				"default": "Alt+Shift+R"
 			}
+		}
+	},
+	"sidebar_action": {
+		"default_title": "Random Bookmark",
+		"default_panel": "sidebar/panel.html",
+		"default_icon": {
+			"19": "icons/icon-19.png",
+			"38": "icons/icon-38.png"
 		}
 	},
     "options_ui": {
@@ -45,6 +48,7 @@
 		"bookmarks", 
 		"tabs", 
 		"menus", 
-		"unlimitedStorage"
+		"unlimitedStorage",
+		"notifications"
 	]
 }

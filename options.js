@@ -202,6 +202,7 @@ deleteBookmarkGroup.onclick = function() {
 					bookmarkGroupSettings.splice(i, 1);
 					// Also remove from local storage if it was sync'd
 					browser.storage.local.remove(selected);
+                    browser.storage.local.remove(`${selected}_index`);
 					break;
 				}
 			}

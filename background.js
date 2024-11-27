@@ -197,16 +197,17 @@ function handleMenuClickAction(info, tab) {
 		showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded.");
 
 	} else {
-		// User changed the selected category
 		if (pluginSettings.selectedGroup !== info.menuItemId.toString()) {
-			pluginSettings.selectedGroup = info.menuItemId.toString();			
-			browser.storage.local.set({
-				activeGroup: info.menuItemId
-			});
-	
-			// Check/preload the currently selected menu
-			// preloadBookmarksIntoLocalStorage('handleMenuClickAction');
+			preloadBookmarksIntoLocalStorage('handleMenuClickAction');
 		}		
+
+		// User changed the selected category
+		pluginSettings.selectedGroup = info.menuItemId.toString();	
+		browser.storage.local.set({
+			activeGroup: info.menuItemId
+		});
+		
+		
 	}
 }
 

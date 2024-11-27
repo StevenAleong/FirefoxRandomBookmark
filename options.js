@@ -45,7 +45,6 @@ var btnClearData = document.getElementById('action-clear-data');
 btnClearData.onclick = function(e) {
     browser.storage.sync.clear();
     browser.storage.local.clear();
-    localStorage.removeItem('randomized-history');
 	location.reload(); 
 };
 
@@ -280,8 +279,7 @@ function saveSettings(option) {
                 document.getElementById('history-list-wrapper').style.display = randomizedHistoryTracking ? 'block' : 'none';
 
                 if (!randomizedHistoryTracking) {
-                    localStorage.removeItem('randomized-history');
-
+                    browser.storage.local.remove('randomized-history');
                     loadRandomizeHistory([]);        
                 }
                 break;
@@ -342,14 +340,13 @@ async function loadSavedOptions() {
     randomizedHistoryTracking = syncRes.randomizeHistory;
     document.getElementById('history-list-wrapper').style.display = randomizedHistoryTracking ? 'block' : 'none';
     if (randomizedHistoryTracking) {
-        const historyCollection = JSON.parse(localStorage.getItem('randomized-history')) || [];
+        const storageCollection = await browser.storage.local.get('randomized-history');
+        const historyCollection = storageCollection.hasOwnProperty('randomized-history') ? JSON.parse(storageCollection['randomized-history']) : [];
         loadRandomizeHistory(historyCollection);
     }
 
     document.getElementById('showContextMenu').checked = syncRes.showContextMenu;
-    
     document.getElementById('showContextOpenCountMenu').checked = syncRes.showContextOpenCountMenu;
-
     document.getElementById('showActionNotice').checked = syncRes.showActionNotice;
     
     // Port over selectedFolders to groups json
@@ -647,9 +644,9 @@ document.addEventListener('DOMContentLoaded', setup());
      * Watches for changes to the randomized history local storage and updates
      * the listing of randomized history
      */
-window.addEventListener('storage', (event) => {
-    if (event.key === 'randomized-history' && randomizedHistoryTracking) {
-        const historyArray = JSON.parse(event.newValue);
+browser.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes['randomized-history'] && randomizedHistoryTracking) {
+        const historyArray = JSON.parse(changes['randomized-history'].newValue);
         loadRandomizeHistory(historyArray);
     }
 });

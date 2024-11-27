@@ -21,6 +21,10 @@ function init() {
     browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
     browser.bookmarks.onMoved.addListener(handleBookmarksMovedAction);
     browser.bookmarks.onRemoved.addListener(handleBookmarksRemovedAction);
+
+	if (localStorage.getItem('randomized-history') !== null) {
+		localStorage.removeItem('randomized-history');
+	}
 }
 
 function showNotification(title, msg) {
@@ -55,8 +59,6 @@ function handleBrowserClickAction(tabInfo) {
 		var currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
 
         currentGroupGet.then((resBookmarks) => {
-			
-
 			// resBookmarks is the array of bookmarks for the groups
 			if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
 				showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
@@ -124,12 +126,13 @@ function handleBrowserClickAction(tabInfo) {
 function handleMenuClickAction(info, tab) {
 	logToDebugConsole('handleMenuClickAction', info, tab);
 
-	// Browser Action group change
 	if (info.menuItemId.toString() === 'options-page') {
+		// Load up the options
 		logToDebugConsole('Open the options page');
 		browser.runtime.openOptionsPage();
 
 	} else if (info.menuItemId.toString() === 'plugin-page') {
+		// Go to the mozilla browser plugin page
 		logToDebugConsole('Open plugin page');
 		browser.tabs.create({
 			url: 'https://addons.mozilla.org/en-US/firefox/addon/random-bookmark-addon/',
@@ -140,7 +143,7 @@ function handleMenuClickAction(info, tab) {
 		// user clicked on last bookmark path, dont do anything currently. Maybe open the url again?
 
 	} else if (tab === undefined) {
-		// Context click
+		// Context click, the user wants to load up a random bookmark from a folder
 		var bookmarksToOpen = 1;
 		if (info.menuItemId.startsWith('open-random')) {
 			bookmarksToOpen = parseInt(info.menuItemId.replace('open-random-', ''), 10);
@@ -187,24 +190,24 @@ function handleMenuClickAction(info, tab) {
 			});
 		});			
 		
+	} else if (pluginSettings.loadingBookmarks) {
+		// Reload the context menus because I don't know how else to reselect the previous selected menu
+		loadBrowserActionGroups();
+
+		showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded.");
+
 	} else {
-		if (pluginSettings.loadingBookmarks) {
-			// Reload the context menus because I don't know how else to reselect the previous selected menu
-			loadBrowserActionGroups();
-
-			showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded.");
-
-		} else {
-			pluginSettings.selectedGroup = info.menuItemId.toString();
+		// User changed the selected category
+		if (pluginSettings.selectedGroup !== info.menuItemId.toString()) {
+			pluginSettings.selectedGroup = info.menuItemId.toString();			
 			browser.storage.local.set({
 				activeGroup: info.menuItemId
 			});
-
+	
 			// Check/preload the currently selected menu
-			preloadBookmarksIntoLocalStorage('handleMenuClickAction');
-		}
-        
-    }
+			// preloadBookmarksIntoLocalStorage('handleMenuClickAction');
+		}		
+	}
 }
 
 function handleStorageChangeAction(changes, area) {
@@ -389,8 +392,8 @@ async function processHistory(bookmark) {
 	// If enabled, save to local storage
 	if (pluginSettings.randomizeHistory) {
 		logToDebugConsole('Save history');
-
-		const historyCollection = JSON.parse(localStorage.getItem('randomized-history')) || [];
+		const storageCollection = await browser.storage.local.get('randomized-history');
+        const historyCollection = storageCollection.hasOwnProperty('randomized-history') ? JSON.parse(storageCollection['randomized-history']) : [];
 
 		historyCollection.unshift({
 			bookmark,
@@ -403,7 +406,9 @@ async function processHistory(bookmark) {
 
 		logToDebugConsole('historyCollection', historyCollection);
 
-		localStorage.setItem('randomized-history', JSON.stringify(historyCollection));
+		browser.storage.local.set({
+			'randomized-history': JSON.stringify(historyCollection)
+		});
 	}
 }
 

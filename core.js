@@ -113,8 +113,11 @@ function loadContextMenus() {
 
 /// Set up the interactive icon action button at the top of the browser
 /// When there's more than 5 bookmark groups, it'll group them into it's own dropdown for the right click action
-function loadBrowserActionGroups() {
+async function loadBrowserActionGroups() {
     logToDebugConsole('loadBrowserActionGroups');
+    
+    let theme = await browser.theme.getCurrent();
+    const isDarkTheme = theme.properties.color_scheme;
 
 	var userLocalStorage = browser.storage.local.get();
     userLocalStorage.then((res) => {
@@ -179,8 +182,8 @@ function loadBrowserActionGroups() {
                 title: 'Help',
                 contexts: ['browser_action'],
                 icons: {
-                    "16": "icons/bookmark-star-16.png",
-                    "32": "icons/bookmark-star-32.png"
+                    "16": `icons/bookmark-star${isDarkTheme ? '-white' : ''}-16.png`,
+                    "32": `icons/bookmark-star${isDarkTheme ? '-white' : ''}-32.png`
                 }
             }, function() {
                 pluginSettings.browserAction.push('random-bookmark-options');
@@ -193,8 +196,8 @@ function loadBrowserActionGroups() {
                 title: 'Random Bookmark Options',
                 contexts: ['browser_action'],
                 icons: {
-                    "16": "icons/gear-16.png",
-                    "32": "icons/gear-32.png"
+                    "16": `icons/gear${isDarkTheme ? '-white' : ''}-16.png`,
+                    "32": `icons/gear${isDarkTheme ? '-white' : ''}-32.png`
                 },
                 parentId: 'random-bookmark-options'
             }, function() {
@@ -209,8 +212,8 @@ function loadBrowserActionGroups() {
                 contexts: ['browser_action'],
                 visible: false,
                 icons: {
-                    "16": "icons/asterisk-16.png",
-                    "32": "icons/asterisk-32.png"
+                    "16": `icons/asterisk${isDarkTheme ? '-white' : ''}-16.png`,
+                    "32": `icons/asterisk${isDarkTheme ? '-white' : ''}-32.png`
                 },
                 parentId: 'random-bookmark-options'
             }, function() {
@@ -224,8 +227,8 @@ function loadBrowserActionGroups() {
                 title: 'Random Bookmark Add-on Info',
                 contexts: ['browser_action'],
                 icons: {
-                    "16": "icons/globe-16.png",
-                    "32": "icons/globe-32.png"
+                    "16": `icons/globe${isDarkTheme ? '-white' : ''}-16.png`,
+                    "32": `icons/globe${isDarkTheme ? '-white' : ''}-32.png`
                 },
                 parentId: 'random-bookmark-options'
             }, function() {

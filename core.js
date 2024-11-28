@@ -273,7 +273,7 @@ function createContextOption(id, name, parent) {
 	});
 };
 
-function preloadBookmarksIntoLocalStorage(source) {	
+async function preloadBookmarksIntoLocalStorage(source) {	
     logToDebugConsole('preloadBookmarksIntoLocalStorage', { 'source': source, 'pluginSettings': pluginSettings });
 
     if (pluginSettings.loadingBookmarks === false) {
@@ -283,37 +283,45 @@ function preloadBookmarksIntoLocalStorage(source) {
     
         // Preload only the selected group.
         // I can't figure out how to load all the groups annoyingly, i don't get async.
-        var userSyncOptions = browser.storage.sync.get();
-        userSyncOptions.then((syncRes) => {
-            var found = syncRes.groups.filter(obj => {
-                return obj.id === pluginSettings.selectedGroup;
-            });
-    
-            if (found.length) {
-                var group = found[0];
+        var userSyncOptions = await browser.storage.sync.get();
+        
+        var found = userSyncOptions.groups.filter(obj => {
+            return obj.id === pluginSettings.selectedGroup;
+        });
+
+        if (found.length) {
+            var group = found[0];
+            
+            if (group.reload) {
+                group.reload = false;
+
+                loadBookmarksIntoLocalStorage(group.id, group.selected);
                 
-                if (group.reload) {					
-                    loadBookmarksIntoLocalStorage(group.id, group.selected);
-    
-                }  else {
-                    setTimeout(function() {
-                        finishedLoading();
-                    }, 250);
-                    
-                    sessionInfo.loadingDateTimeStarted = null;
-    
-                }
-                
-            } else {
+                const index = userSyncOptions.groups.findIndex(obj => obj.id === pluginSettings.selectedGroup);
+                userSyncOptions.groups[index] = group;
+
+                browser.storage.sync.set({
+                    groups: userSyncOptions.groups
+                });
+
+            }  else {
                 setTimeout(function() {
                     finishedLoading();
                 }, 250);
-
+                
                 sessionInfo.loadingDateTimeStarted = null;
-    
+
             }
+            
+        } else {
+            setTimeout(function() {
+                finishedLoading();
+            }, 250);
+
+            sessionInfo.loadingDateTimeStarted = null;
+
+        }
         
-        });
     }
 };
 

@@ -116,8 +116,9 @@ function loadContextMenus() {
 async function loadBrowserActionGroups() {
     logToDebugConsole('loadBrowserActionGroups');
     
-    let theme = await browser.theme.getCurrent();
-    const isDarkTheme = theme.properties.color_scheme;
+    const theme = await browser.theme.getCurrent();
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isDarkTheme = (theme?.properties?.color_scheme || userAgent.includes("ubuntu")) ?? false;
 
 	var userLocalStorage = browser.storage.local.get();
     userLocalStorage.then((res) => {

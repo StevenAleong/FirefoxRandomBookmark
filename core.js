@@ -2,6 +2,7 @@ var pluginSettings = {
     randomOption: 'default',
     tabOption: 'default',
     tabSetActive: true,
+    disableAutomaticRefresh: false,
     randomizeHistory: false,
     maxHistory: 10,
     showContextMenu: false,
@@ -35,6 +36,7 @@ function loadUserSettings() {
 		
         pluginSettings.randomOption = randomOpt;
         pluginSettings.tabSetActive = typeof resSync.setActive !== 'undefined' ? resSync.setActive : true;
+        pluginSettings.disableAutomaticRefresh = typeof resSync.disableAutomaticRefresh !== 'undefined' ? resSync.disableAutomaticRefresh : false;
         pluginSettings.randomizeHistory = typeof resSync.randomizeHistory !== 'undefined' ? resSync.randomizeHistory : false;
         pluginSettings.showContextMenu = typeof resSync.showContextMenu !== 'undefined' ? resSync.showContextMenu : false;  
         pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== 'undefined' ? resSync.showContextOpenCountMenu : false;  
@@ -203,6 +205,21 @@ async function loadBrowserActionGroups() {
                 parentId: 'random-bookmark-options'
             }, function() {
                 pluginSettings.browserAction.push('options-page');
+            });
+
+            // Force cache reload of current group
+            browser.menus.create({
+                id: 'refresh-cache',
+                type: 'normal',
+                title: 'Force Group Cache Refresh',
+                contexts: ['browser_action'],
+                icons: {
+                    "16": `icons/refresh${isDarkTheme ? '-white' : ''}-16.png`,
+                    "32": `icons/refresh${isDarkTheme ? '-white' : ''}-32.png`
+                },
+                parentId: 'random-bookmark-options'
+            }, function() {
+                pluginSettings.browserAction.push('refresh-cache');
             });
 
             // Will be used to update and show the last path

@@ -18,7 +18,8 @@ function init() {
 	
     // Watch when user changes their bookmarks.
     browser.bookmarks.onCreated.addListener(handleBookmarksCreatedAction);
-    browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
+    // Don't need to refresh on edit anymore as i'm using the ID instead
+	// browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
     browser.bookmarks.onMoved.addListener(handleBookmarksMovedAction);
     browser.bookmarks.onRemoved.addListener(handleBookmarksRemovedAction);
 
@@ -74,19 +75,20 @@ function handleBrowserClickAction(tabInfo) {
 							groupIndex = resIndex[groupIndexName];							
 						}
 						
-						if (groupIndex >= resBookmarks[pluginSettings.selectedGroup].length) {
-							groupIndex = 0;
-						}
-
 						// Get the bookmark
 						var bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
 						
 						// Open it
 						browser.bookmarks
 							.get(bookmarkId)
-							.then((result) => {
-								openBookmarks(result, false, tabInfo);
-							});
+							.then(
+								(result) => {
+									openBookmarks(result, false, tabInfo);
+								},
+								(failed) => {
+									showNotification('Bookmark Not Found', 'You must have deleted a bookmark, could not find this one.');
+								}
+							);
 						
 						// Show notice
 						if (pluginSettings.showActionNotice === true) {
@@ -94,7 +96,14 @@ function handleBrowserClickAction(tabInfo) {
 						}
 						
 						// Set the index for when the user presses the button again
-						groupIndex = groupIndex + 1;						
+						groupIndex = groupIndex + 1;	
+						
+						if (groupIndex >= resBookmarks[pluginSettings.selectedGroup].length) {
+							// Hit the limit, recache the group
+							groupIndex = 0;
+							handleTheBookmarks('reachedTheEnd');
+						}
+
 						browser.storage.local.set({
 							[groupIndexName]: groupIndex
 						});
@@ -112,10 +121,15 @@ function handleBrowserClickAction(tabInfo) {
 					var bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
 					browser.bookmarks
 						.get(bookmarkId)
-						.then((result) => {
-							openBookmarks(result, false, tabInfo);
-						});
-											
+						.then(
+							(result) => {
+								openBookmarks(result, false, tabInfo);
+							},
+							(failed) => {
+								showNotification('Bookmark Not Found', 'You must have deleted a bookmark, could not find this one.');
+							}
+						);
+
 				}
 
 			}			
@@ -138,6 +152,11 @@ function handleMenuClickAction(info, tab) {
 			url: 'https://addons.mozilla.org/en-US/firefox/addon/random-bookmark-addon/',
 			active: true
 		});
+
+	} else if (info.menuItemId.toString() === 'refresh-cache') {
+		// Force refresh of the cache
+		logToDebugConsole('Force refresh of cache');
+		handleTheBookmarks('manuallyRefreshCache');
 
 	} else if (info.menuItemId.toString() === 'last-bookmark-path') {
 		// user clicked on last bookmark path, dont do anything currently. Maybe open the url again?
@@ -207,7 +226,6 @@ function handleMenuClickAction(info, tab) {
 			activeGroup: info.menuItemId
 		});
 		
-		
 	}
 }
 
@@ -227,23 +245,31 @@ function handleStorageChangeAction(changes, area) {
 }
 
 function handleBookmarksCreatedAction() {
-	logToDebugConsole('handleBookmarksCreatedAction');
-	handleTheBookmarks('handleBookmarksCreatedAction');
+	if (pluginSettings.disableAutomaticRefresh === false) {
+		logToDebugConsole('handleBookmarksCreatedAction');
+		handleTheBookmarks('handleBookmarksCreatedAction');
+	}	
 }
 
 function handleBookmarksMovedAction() {
-	logToDebugConsole('handleBookmarksMovedAction');
-	handleTheBookmarks('handleBookmarksMovedAction');
+	if (pluginSettings.disableAutomaticRefresh === false) {
+		logToDebugConsole('handleBookmarksMovedAction');
+		handleTheBookmarks('handleBookmarksMovedAction');
+	}
 }
 
 function handleBookmarksRemovedAction() {
-	logToDebugConsole('handleBookmarksRemovedAction');
-	handleTheBookmarks('handleBookmarksRemovedAction');
+	if (pluginSettings.disableAutomaticRefresh === false) {
+		logToDebugConsole('handleBookmarksRemovedAction');
+		handleTheBookmarks('handleBookmarksRemovedAction');
+	}
 }
 
 function handleBookmarksChangedAction(id, changeInfo) {
-	logToDebugConsole('handleBookmarksChangedAction', { 'id': id, 'changeInfo': changeInfo });
-	handleTheBookmarks('handleBookmarksChangedAction');	
+	if (pluginSettings.disableAutomaticRefresh === false) {
+		logToDebugConsole('handleBookmarksChangedAction', { 'id': id, 'changeInfo': changeInfo });
+		handleTheBookmarks('handleBookmarksChangedAction');	
+	}
 }
 
 function handleTheBookmarks(source) {

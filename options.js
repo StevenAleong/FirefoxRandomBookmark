@@ -7,6 +7,7 @@ const settingsEnum = {
     CONTEXTOPENCOUNT: 'contextopencount',
     SHOWACTIONNOTICE: 'showactionnotice',
     RANDOMIZEHISTORY: 'randomizeHistory',
+    DISABLEAUTOMTICREFRESH: 'disableautomaticrefresh',
 };
 
 var loading = true;
@@ -91,7 +92,12 @@ radioOpenOptionNew.addEventListener('change', function() { saveSettings(settings
 var radioOpenOptionCurrent = document.getElementById('openoption-current');
 radioOpenOptionCurrent.addEventListener('change', function() { saveSettings(settingsEnum.TABOPTION); });
 
-// Bookmark Path Options
+// Automatic Refresh
+// -------------------------------------------------------------
+var checkboxAutomaticRefresh = document.getElementById('disableAutomaticRefresh');
+checkboxAutomaticRefresh.addEventListener('change', function() { saveSettings(settingsEnum.DISABLEAUTOMTICREFRESH); });
+
+// Bookmark History
 // -------------------------------------------------------------
 var checkboxRandomizeHistory = document.getElementById('randomizeHistory');
 checkboxRandomizeHistory.addEventListener('change', function() { saveSettings(settingsEnum.RANDOMIZEHISTORY); });
@@ -270,6 +276,14 @@ function saveSettings(option) {
                 });
                 break;
 
+            case settingsEnum.DISABLEAUTOMTICREFRESH:
+                disableAutomaticRefresh = document.getElementById('disableAutomaticRefresh').checked;
+
+                browser.storage.sync.set({
+                    disableAutomaticRefresh: disableAutomaticRefresh
+                });
+                break;
+
             case settingsEnum.RANDOMIZEHISTORY:
                 randomizedHistoryTracking = document.getElementById('randomizeHistory').checked;                
                 
@@ -336,6 +350,8 @@ async function loadSavedOptions() {
     } else if (syncRes.tabOption === 'currentTab') {
         document.getElementById('openoption-current').checked = true;
     }
+
+    document.getElementById('disableAutomaticRefresh').checked = syncRes.disableAutomaticRefresh;
 
     document.getElementById('randomizeHistory').checked = syncRes.randomizeHistory;
     randomizedHistoryTracking = syncRes.randomizeHistory;

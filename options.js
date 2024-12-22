@@ -236,24 +236,55 @@ deleteBookmarkGroup.onclick = function() {
     }
 };
 
-function saveSettings(option) {
+async function saveSettings(option) {
     if (loading === false) {
         switch (option) {
             case settingsEnum.RANDOMIZEMETHOD:
                 var randomOption = 'default';
+                var forceReload = false;
                 if (document.getElementById('randomoption-bybookmark').checked) {
                     randomOption = 'bybookmark';
+                    forceReload = true;
                 } else if (document.getElementById('randomoption-alphabetical').checked) {
 					randomOption = 'alphabetical';
+                    forceReload = true;
 				}
     
                 browser.storage.sync.set({
                     randomOption: randomOption
                 });
 				
-				pluginSettings.randomOption = randomOption;								
-				preloadBookmarksIntoLocalStorage('saveSettings');
-				    
+				pluginSettings.randomOption = randomOption;
+
+                if (forceReload) {
+                    // Bookmarks shuffle method was changed, if it's bybookmark or alphabetical
+                    // Set all bookmark groups to reload
+                    var userSyncOptions = await browser.storage.sync.get();
+                    if (userSyncOptions.groups) {
+                        var bookmarkGroups = userSyncOptions.groups;
+
+                        for(var i = 0; i < bookmarkGroups.length; i++) {
+                            // Force reload of bookmarks in storage
+                            bookmarkGroups[i].reload = true;
+                            
+                            // Reset the selected group index back to zero
+                            var groupIndexName = bookmarkGroups[i].id + '_index';
+                            browser.storage.local.set({
+                                [groupIndexName]: 0
+                            });
+                        }
+                        
+                        browser.storage.sync.set({
+                            groups: bookmarkGroups
+                        });
+                        
+                        preloadBookmarksIntoLocalStorage('randomizeMethodChanged');
+                    }
+
+                } else {
+                    preloadBookmarksIntoLocalStorage('saveSettings');
+                }
+
                 break;
     
             case settingsEnum.TABACTIVE:
@@ -668,3 +699,40 @@ browser.storage.onChanged.addListener((changes, area) => {
     }
 });
 
+// Accordion
+
+document.querySelectorAll('.accordion-button').forEach((button) => {
+    button.addEventListener('click', function () {
+      // Identify the target collapse element (from data-bs-target)
+      const collapseId = button.getAttribute('data-bs-target');
+      const collapseEl = document.querySelector(collapseId);
+  
+      // If we want to close other open accordions in the same group:
+      const parentSelector = collapseEl.getAttribute('data-bs-parent');
+      if (parentSelector) {
+        // Close any other .show elements under the same parent
+        const parentEl = document.querySelector(parentSelector);
+        parentEl.querySelectorAll('.accordion-collapse.show').forEach((openEl) => {
+          if (openEl !== collapseEl) {
+            openEl.classList.remove('show');
+            // Mark the corresponding button as collapsed
+            parentEl
+              .querySelector(`[data-bs-target="#${openEl.id}"]`)
+              .classList.add('collapsed');
+            parentEl
+              .querySelector(`[data-bs-target="#${openEl.id}"]`)
+              .setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+  
+      // Toggle this one
+      collapseEl.classList.toggle('show');
+      button.classList.toggle('collapsed');
+  
+      // Update aria-expanded attribute
+      const isExpanded = !button.classList.contains('collapsed');
+      button.setAttribute('aria-expanded', isExpanded.toString());
+    });
+});
+  

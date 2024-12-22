@@ -374,7 +374,7 @@ async function loadSavedOptions() {
         randomizeMethod = 'alphabetical';			
     }
 
-    document.getElementById('activeoption').checked = syncRes.setActive;
+    document.getElementById('activeoption').checked = syncRes.setActive ?? true;
 
     if (syncRes.tabOption === 'newTab') {
         document.getElementById('openoption-new').checked = true;

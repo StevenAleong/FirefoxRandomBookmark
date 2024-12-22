@@ -1,7 +1,7 @@
 var pluginSettings = {
     randomOption: 'default',
     tabOption: 'default',
-    tabSetActive: false,
+    tabSetActive: true,
     disableAutomaticRefresh: false,
     randomizeHistory: false,
     maxHistory: 10,

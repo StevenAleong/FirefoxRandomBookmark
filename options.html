@@ -7,7 +7,6 @@
     <title>Random Bookmark Options</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
     <link rel="stylesheet" href="options.css" />
 </head>
 
@@ -19,238 +18,363 @@
 
                 <form id="options-form">
                     <div class="my-3">
+                        <div class="accordion mb-4" id="options-accordion">
+
+                            <!-- RANDOMIZE METHOD -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#option-randomize-method" aria-expanded="true" aria-controls="option-randomize-method">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shuffle" viewBox="0 0 16 16">
+                                                <path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.43.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5" />
+                                                <path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192" />
+                                            </svg>
+                                        </span>
+
+                                        Randomize Method
+                                    </button>
+                                </h2>
+                                <div id="option-randomize-method" class="accordion-collapse collapse show" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            Your bookmark groups are preloaded and shuffled into storage to speed up the process of picking a random bookmark from your bookmark group.
+                                            If you change your bookmarks (add/move/delete), the add-on will reload and shuffle your bookmark groups again, unless you change the Auto-refresh of Bookmark Cache setting.
+                                        </p>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-default" value="default" checked />
+                                            <label class="form-check-label" for="randomoption-default">
+                                                <b>Always Random</b><br />
+                                                Pick a random bookmark each time from the current bookmark group. You potentially can get the same bookmark within
+                                                a short number of randomizations.
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-bybookmark" value="bybookmark" />
+                                            <label class="form-check-label" for="randomoption-bybookmark">
+                                                <b>Shuffled Order</b><br />
+                                                Shuffle the selected group first and then on each click, the add-on will go to the next one and so on. It will reshuffle
+                                                automatically when it reaches the end.
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check" title="Yes, I know it's not very random, not random at all.">
+                                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-alphabetical" value="alphabetical" />
+                                            <label class="form-check-label" for="randomoption-alphabetical">
+                                                <b>Alphabetical Title</b><br />
+                                                Order the selected group alphabetically by the saved bookmark title and then go through each one on each click and loop when it reaches the end.
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB OPTIONS -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-tab-options" aria-expanded="false" aria-controls="option-tab-options">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-segmented-nav" viewBox="0 0 16 16">
+                                                <path d="M0 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm6 3h4V5H6zm9-1V6a1 1 0 0 0-1-1h-3v4h3a1 1 0 0 0 1-1" />
+                                            </svg>
+                                        </span>
+
+                                        Tab Options
+                                    </button>
+                                </h2>
+                                <div id="option-tab-options" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="openoption" id="openoption-default" value="default" checked />
+                                            <label class="form-check-label" for="openoption-default">
+                                                Open a new tab and then keep using that tab.
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="openoption" id="openoption-new" value="newTab" />
+                                            <label class="form-check-label" for="openoption-new">
+                                                Open in new tab each time.
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="openoption" id="openoption-current" value="currentTab" />
+                                            <label class="form-check-label" for="openoption-current">
+                                                Open in the currently selected tab.
+                                            </label>
+                                        </div>
+                                        <br />
+
+                                        <div class="alert alert-secondary">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="activeoption" id="activeoption" value="playlist" checked />
+                                                <label class="form-check-label" for="activeoption">
+                                                    Set the tab as active on open. This lets you open random bookmarks and not go directly to it. <small>(Used by the first or second tab options above)</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GROUPS -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-bookmark-groups" aria-expanded="false" aria-controls="option-bookmark-groups">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-collection" viewBox="0 0 16 16">
+                                                <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5z" />
+                                            </svg>
+                                        </span>
+
+                                        Bookmark Groups
+                                    </button>
+                                </h2>
+                                <div id="option-bookmark-groups" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            If no bookmark folders are selected, the add-on will use all of your bookmarks.<br />
+                                            Selecting a parent folder will not load any bookmarks from the children. The plugin only looks for
+                                            bookmarks in the selected folders.
+                                        </p>
+                                        <p>
+                                            To change which bookmark group is active, right click on the browser icon for this add-on and then
+                                            select which group it should randomize from!
+                                        </p>
+                                        <p>
+                                            <strong>Note:</strong> If things stop saving, it may be caused by going over the 100kb sync storage limit.
+                                            It should require a LOT of groups and bookmark folders being saved but it's possible.
+                                            Shouldn't ever really happen but it's something to keep in mind.
+                                        </p>
+
+                                        <div class="alert alert-secondary mb-3">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <button id="action-add-group" class="btn btn-primary" type="button">Add</button>
+                                                </div>
+                                                <select id="bookmark-groups" class="form-control">
+                                                    <option value="default">Default</option>
+                                                </select>
+                                                <div class="input-group-append">
+                                                    <button id="action-edit-group" class="btn btn-info" type="button" disabled>Edit</button>
+                                                    <button id="action-delete-group" class="btn btn-danger" type="button" disabled>Delete</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="bookmarks-wrapper">
+                                            <table class="table table-sm">
+                                                <thead class="thead-dark">
+                                                    <tr>
+                                                        <th style="width: 40px;" class="text-center"><input id="select-all" type="checkbox" /></th>
+                                                        <th>Folder</th>
+                                                        <th style="width: 100px;" class="text-right">Bookmarks</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="bookmarks-folders">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RANDOMIZE HISTORY -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-randomize-history" aria-expanded="false" aria-controls="option-randomize-history">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
+                                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
+                                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
+                                            </svg>
+                                        </span>
+
+                                        Randomize History
+                                    </button>
+                                </h2>
+                                <div id="option-randomize-history" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            Keep a history of the bookmarks that you're going to whenever you're clicking on randomize.
+                                            Will only keep track of the last 10 randomized bookmarks.
+                                        </p>
+
+                                        <div class="alert alert-secondary mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="randomizeHistory" id="randomizeHistory" />
+                                                <label class="form-check-label" for="randomizeHistory">
+                                                    Keep history
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div id="history-list-wrapper" style="display: none">
+                                            <h5>History</h5>
+
+                                            <ul id="randomize-history-list" class="list-group"></ul>
+
+                                            <div id="history-list-none" class="alert alert-warning">
+                                                No randomize history yet, start randomizing some bookmarks!
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AUTOREFRESH -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-auto-refresh" aria-expanded="false" aria-controls="option-auto-refresh">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
+                                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                                            </svg>
+                                        </span>
+
+                                        Auto-refresh of Bookmark Cache
+                                    </button>
+                                </h2>
+                                <div id="option-auto-refresh" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            Whenever you add a new bookmark, move an existing bookmark, or delete a bookmark, the tool will automatically
+                                            refresh the cache ensuring that when you press the randomize button, it'll grab an existing bookmark.
+                                        </p>
+                                        <p>
+                                            If you disable this, any newly added bookmarks to the group will not show up. Any deleted bookmarks will show a
+                                            notification that you deleted the bookmark. You can manually do it yourself by right clicking on the randomize
+                                            button > Help > Force Group Cache Refresh.
+                                        </p>
+                                        <p>
+                                            It will reshuffle/refresh automatically if you reach the end of the currently cached bookmarks.
+                                        </p>
+
+                                        <div class="alert alert-secondary mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="disableAutomaticRefresh" id="disableAutomaticRefresh" />
+                                                <label class="form-check-label" for="disableAutomaticRefresh">
+                                                    Disable automatic refresh of bookmark cache, I will manually refresh it myself or if it reaches the end.
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CONTEXT MENU -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-context-menu" aria-expanded="false" aria-controls="option-context-menu">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-menu-app-fill" viewBox="0 0 16 16">
+                                                <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h2A1.5 1.5 0 0 1 5 1.5v2A1.5 1.5 0 0 1 3.5 5h-2A1.5 1.5 0 0 1 0 3.5zM0 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm1 3v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2zm14-1V8a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2zM2 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
+                                            </svg>
+                                        </span>
+
+                                        Context Menu
+                                    </button>
+                                </h2>
+                                <div id="option-context-menu" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            Using the context menu will open the bookmarks in new tabs.
+                                        </p>
+
+                                        <h5>Quick Open of 1 Random Bookmark</h5>
+                                        <p>
+                                            If checked, when you right click on a bookmark or folder, you will see an option to load a random bookmark.
+                                            If you select a bookmark within a folder, it will pick a random bookmark from that folder that the bookmark is in.
+                                        </p>
+
+                                        <div class="alert alert-secondary mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="showContextMenu" id="showContextMenu" checked />
+                                                <label class="form-check-label" for="showContextMenu">
+                                                    Show the bookmark context menu options shortcut
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <h5>Quick Open of More Than 1 Random Bookmark</h5>
+                                        <p>
+                                            If checked, when you right click on a bookmark or folder, you will see options to load 2 to 10 random bookmarks
+                                            from the selected folder.
+                                        </p>
+
+                                        <div class="alert alert-secondary">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="showContextOpenCountMenu" id="showContextOpenCountMenu" checked />
+                                                <label class="form-check-label" for="showContextOpenCountMenu">
+                                                    Show the bookmark context menu open 2-10 random bookmark options
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- OTHER -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#option-other" aria-expanded="false" aria-controls="option-other">
+                                        <span class="me-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-square-fill" viewBox="0 0 16 16">
+                                                <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm6 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+                                            </svg>
+                                        </span>
+
+                                        Notifications
+                                    </button>
+                                </h2>
+                                <div id="option-other" class="accordion-collapse collapse" data-bs-parent="#options-accordion">
+                                    <div class="accordion-body">
+                                        <p>
+                                            Show a notice of what randomized index you're currently at when you hit that randomize button for shuffle methods "Shuffled Order" and "Alphabetical".
+                                        </p>
+                                        <p>
+                                            Will look like -> Showing bookmark 42/183
+                                        </p>
+
+                                        <div class="alert alert-secondary">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="showActionNotice" id="showActionNotice" />
+                                                <label class="form-check-label" for="showActionNotice">
+                                                    Show index notification
+                                                </label>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="alert alert-info text-center">
+                            Your settings are saved automatically when you change them!<br />
+                            You can close this window/tab when you're done making changes.
+                        </div>
+
                         <hr />
-                        <h2>Randomize Method</h2>
 
-                        <p>
-                            Your bookmark groups are preloaded and shuffled into storage.
-                            If you change your bookmarks (add/edit/delete), the add-on will reload and shuffle your bookmark groups again.
-                        </p>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-default" value="default" checked />
-                            <label class="form-check-label" for="randomoption-default">
-                                <b>Always Random</b><br />
-                                Pick a random bookmark each time.
-                            </label>
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-bybookmark" value="bybookmark" />
-                            <label class="form-check-label" for="randomoption-bybookmark">
-                                <b>Shuffled Order</b><br />
-                                Shuffle the selected group first and then on each click, the add-on will go to the next one and so on. It will reshuffle
-                                automatically when it reaches the end.
-                            </label>
-                        </div>
-
-                        <div class="form-check" title="Yes, I know it's not very random, not random at all.">
-                            <input class="form-check-input" type="radio" name="randomoption" id="randomoption-alphabetical" value="alphabetical" />
-                            <label class="form-check-label" for="randomoption-alphabetical">
-                                <b>Alphabetical</b><br />
-                                Order the selected group alphabetically by bookmark ID and then go through each one on each click and loop when it reaches the end.
-                            </label>
-                        </div>
-
-                        <hr />
-
-                        <h2>Tab Options</h2>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="openoption" id="openoption-default" value="default" checked />
-                            <label class="form-check-label" for="openoption-default">
-                                Open a new tab and then keep using that tab.
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="openoption" id="openoption-new" value="newTab" />
-                            <label class="form-check-label" for="openoption-new">
-                                Open in new tab each time.
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="openoption" id="openoption-current" value="currentTab" />
-                            <label class="form-check-label" for="openoption-current">
-                                Open in the currently selected tab.
-                            </label>
-                        </div>
-                        <br />
-
-                        <div class="alert alert-secondary">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="activeoption" id="activeoption" value="playlist" checked />
-                                <label class="form-check-label" for="activeoption">
-                                    Set the tab as active on open. This lets you open random bookmarks and not go directly to it. <small>(Mainly used by the first or second tab options above)</small>
-                                </label>
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <h2>Randomize History</h2>
-
-                        <p>
-                            Keep a history of the pages that you're going to whenever you're clicking on randomize.
-                            Will only keep track of the last 10 randomized bookmarks.
-                        </p>
-
-                        <div class="alert alert-secondary mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="randomizeHistory" id="randomizeHistory" />
-                                <label class="form-check-label" for="randomizeHistory">
-                                    Keep history
-                                </label>
-                            </div>
-                        </div>
-
-                        <div id="history-list-wrapper" style="display: none">
-                            <h5>History</h5>
-
-                            <ul id="randomize-history-list" class="list-group"></ul>
-
-                            <div id="history-list-none" class="alert alert-warning">
-                                No randomize history yet, start randomizing some bookmarks!
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <h2>Auto-refresh of Bookmark Cache</h2>
-
-                        <p>
-                            Whenever you add a new bookmark, move an existing bookmark, or delete a bookmark, the tool will automatically
-                            refresh the cache ensuring that when you press the randomize button, it'll grab an existing bookmark.
-                        </p>
-                        <p>
-                            If you disable this, any newly added bookmarks to the group will not show up. Any deleted bookmarks will show a
-                            notification that you deleted the bookmark. You can manually do it yourself by right clicking on the randomize
-                            button > Help > Force Group Cache Refresh.
-                        </p>
-                        <p>
-                            It will reshuffle/refresh automatically if you reach the end of the currently cached bookmarks.
-                        </p>
-
-                        <div class="alert alert-secondary mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="disableAutomaticRefresh" id="disableAutomaticRefresh" />
-                                <label class="form-check-label" for="disableAutomaticRefresh">
-                                    Disable automatic refresh of bookmark cache, I will manually refresh it myself or if it reaches the end.
-                                </label>
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <h2>Context Menu</h2>
-
-                        <p>
-                            These will open in new tabs.
-                        </p>
-
-                        <h5>Quick Open of 1 Random Bookmark</h5>
-                        <p>
-                            If checked, when you right click on a bookmark or folder, you will see an option to load a random bookmark.
-                            If you select a bookmark within a folder, it will pick a random bookmark from that folder that the bookmark is in.
-                        </p>
-
-                        <div class="alert alert-secondary mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="showContextMenu" id="showContextMenu" checked />
-                                <label class="form-check-label" for="showContextMenu">
-                                    Show the bookmark context menu options shortcut
-                                </label>
-                            </div>
-                        </div>
-
-                        <h5>Quick Open of More Than 1 Random Bookmark</h5>
-                        <p>
-                            If checked, when you right click on a bookmark or folder, you will see options to load 2 to 10 random bookmarks
-                            from the selected folder.
-                        </p>
-
-                        <div class="alert alert-secondary">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="showContextOpenCountMenu" id="showContextOpenCountMenu" checked />
-                                <label class="form-check-label" for="showContextOpenCountMenu">
-                                    Show the bookmark context menu open 2-10 random bookmark options
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr />
-
-                    <h2>Bookmarks</h2>
-
-                    <div class="alert alert-info">
-                        If no bookmark folders are selected, the add-on will use all of your bookmarks.<br />
-                        Selecting a parent folder will not load any bookmarks from the children. The plugin only looks for
-                        bookmarks in the selected folders.<br /><br />
-
-                        To change which bookmark group is active, right click on the browser icon for this add-on and then
-                        select which group it should randomize from!<br /><br />
-
-                        <strong>Note:</strong> If things stop saving, it may be caused by going over the 100kb sync storage limit.
-                        It should require a LOT of groups and bookmark folders being saved but it's possible.
-                        Shouldn't ever really happen but it's something to keep in mind.
-
-                    </div>
-
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <button id="action-add-group" class="btn btn-primary" type="button">Add</button>
-                        </div>
-                        <select id="bookmark-groups" class="form-control">
-                            <option value="default">Default</option>
-                        </select>
-                        <div class="input-group-append">
-                            <button id="action-edit-group" class="btn btn-info" type="button" disabled>Edit</button>
-                            <button id="action-delete-group" class="btn btn-danger" type="button" disabled>Delete</button>
-                        </div>
-                    </div>
-
-                    <div id="bookmarks-wrapper">
-                        <table class="table table-sm">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th style="width: 40px;" class="text-center"><input id="select-all" type="checkbox" /></th>
-                                    <th>Folder</th>
-                                    <th style="width: 100px;" class="text-right">Bookmarks</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bookmarks-folders">
-
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <hr />
-
-                    <div class="alert alert-info text-center">
-                        Your settings are saved automatically when you change them!<br />
-                        You can close this window/tab when you're done making changes.
-                    </div>
-
-                    <hr />
-
-                    <div class="text-center mt-3">
-                        <p>
-                            Having issues? Use the tools below for help troubleshooting.
-                        </p>
-                        <button id="action-clear-data" type="button" class="btn btn-danger btn-sm">Clear All Add-On Data</button>
-                        <button id="action-log-all-data" type="button" class="btn btn-info btn-sm">Log Add-On Data To Console Window</button>
-                    </div>
-
-                    <div class="alert alert-secondary mt-3">
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="showActionNotice" id="showActionNotice" />
-                            <label class="form-check-label" for="showActionNotice">
-                                Show a notice of what index you're at currently when randoming.<br />
-                                Will look like -> Showing bookmark 42/183
-                            </label>
+                        <div class="text-center mt-3">
+                            <p>
+                                Having issues?
+                            </p>
+                            <p>
+                                <a href="https://github.com/StevenAleong/FirefoxRandomBookmark/issues/new/choose" target="_blank" class="btn btn-primary btn-sm">Report an issue</a>
+                            </p>
+                            <p>
+                                <button id="action-clear-data" type="button" class="btn btn-danger btn-sm">Clear All Add-On Data</button>
+                                <button id="action-log-all-data" type="button" class="btn btn-info btn-sm">Log Add-On Data To Console Window</button>
+                            </p>
                         </div>
                     </div>
                 </form>

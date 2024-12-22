@@ -1,7 +1,7 @@
 var pluginSettings = {
     randomOption: 'default',
     tabOption: 'default',
-    tabSetActive: true,
+    tabSetActive: false,
     disableAutomaticRefresh: false,
     randomizeHistory: false,
     maxHistory: 10,
@@ -295,7 +295,6 @@ async function preloadBookmarksIntoLocalStorage(source) {
     logToDebugConsole('preloadBookmarksIntoLocalStorage', { 'source': source, 'pluginSettings': pluginSettings });
 
     if (pluginSettings.loadingBookmarks === false) {
-
         sessionInfo.loadingDateTimeStarted = Date.now();
         pluginSettings.loadingBookmarks = true;
     
@@ -369,46 +368,40 @@ function processBookmarkPromises(id, promises) {
     logToDebugConsole('processBookmarkPromises', { 'id': id, 'promises': promises });
 
     settlePromises(promises)
-    .then(results => {
-        var bookmarksToSave = [];
+        .then(results => {
+            var bookmarksToSave = [];
 
-        results.forEach(result => {
-            logToDebugConsole('processBookmarkPromises Result', result);
-			
-            if (result.state === 'fulfilled'){
-                for(var i = 0; i < result.value.length; i++) {
-                    var r = processBookmarks(result.value[i], result.value[i].id === 'root________');
-                    bookmarksToSave = bookmarksToSave.concat(r);
+            results.forEach(result => {
+                logToDebugConsole('processBookmarkPromises Result', result);
+                
+                if (result.state === 'fulfilled'){
+                    for(var i = 0; i < result.value.length; i++) {
+                        var r = processBookmarks(result.value[i], result.value[i].id === 'root________');
+                        bookmarksToSave = bookmarksToSave.concat(r);
+                    }
                 }
+            });
 
+            var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
+                return index === self.indexOf(elem);
+            });
+                    
+            if (pluginSettings.randomOption === 'alphabetical') {
+                uniqueBookmarks.sort((a, b) => a.title.localeCompare(b.title, undefined, {sensitivity: 'base'}));
             } else {
-                //console.log('failed', result.value);
-                // Remove from the grouped settings
-                // bookmarkGroupSettings
-
+                Shuffle(uniqueBookmarks);
             }
-        });
+            
+            logToDebugConsole('Bookmarks to store', uniqueBookmarks);
 
-        var uniqueBookmarks = bookmarksToSave.filter(function(elem, index, self) {
-            return index === self.indexOf(elem);
-        });
-				
-		if (pluginSettings.randomOption === 'alphabetical') {
-			uniqueBookmarks.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-		} else {
-			Shuffle(uniqueBookmarks);
-		}
-		
-		logToDebugConsole('Bookmarks to store', uniqueBookmarks);
+            browser.storage.local.set({
+                [id]: uniqueBookmarks.map(bookmark => bookmark.id)
+            });
 
-        browser.storage.local.set({
-            [id]: uniqueBookmarks
+            setTimeout(function() {
+                finishedLoading();
+            }, 250);
         });
-
-        setTimeout(function() {
-            finishedLoading();
-        }, 250);
-    });
 };
 
 function processBookmarks(bookmarkItem, goDeeper) {
@@ -421,7 +414,7 @@ function processBookmarks(bookmarkItem, goDeeper) {
         bookmarksCollection = bookmarksCollection.concat(result);
 
     } else if (bookmarkItem.type === 'bookmark') {
-        bookmarksCollection.push(bookmarkItem.id);
+        bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
     }
 
     if (bookmarkItem.children && goDeeper) {
@@ -441,7 +434,7 @@ function getBookmarks(bookmarkFolder) {
     if (typeof bookmarkFolder !== 'undefined' && bookmarkFolder !== null)
 		for (var i = 0; i < bookmarkFolder.length; i++) {
 			if (bookmarkFolder[i].type === 'bookmark') {
-				bookmarksCollection.push(bookmarkFolder[i].id);
+				bookmarksCollection.push({ id: bookmarkFolder[i].id, title: bookmarkFolder[i].title });
 			}
 		}
 
@@ -459,11 +452,7 @@ function onError(e) {
 
 function logToDebugConsole(what, data) {
 	if (pluginSettings.isDebugging) {
-        if (typeof data !== 'undefined') {
-            console.log(what, data);
-        } else {
-            console.log(what);
-        }		
+        console.log(what, data);	
 	}
 };
 

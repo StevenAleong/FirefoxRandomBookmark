@@ -1,50 +1,43 @@
 {
-    "manifest_version": 2,
-    "browser_specific_settings": {
-		"gecko": {
-			"id": "random-bookmark@stevenaleong.com",
-			"strict_min_version": "79.0"
-		}
-	},
-    "name": "Random Bookmark",
-    "version": "2.2.8",
-	"author": "Steven Aleong",
-	"developer": {
-		"name": "Steven Aleong",
-		"url": "https://stevenaleong.com"
-	},
-    "description": "Load up a random bookmark! Features: Create groups of bookmark folders to randomize from, randomize a folder with right click, tab options, and more! Does not work with Firefox for Android unfortunately, add-ons are not able to access bookmarks on androids.",
-    "icons": {
-		"48": "icons/icon-48.png",
-		"96": "icons/icon-96.png"
-	},
-    "browser_action": {
-		"default_icon": {
-			"19": "icons/icon-19.png",
-			"38": "icons/icon-38.png"
-		},
-		"default_title": "Random Bookmark"
+  "manifest_version": 2,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "random-bookmark@stevenaleong.com",
+      "strict_min_version": "79.0"
+    }
+  },
+  "name": "Random Bookmark",
+  "version": "2.3.0",
+  "author": "Steven Aleong",
+  "developer": {
+    "name": "Steven Aleong",
+    "url": "https://stevenaleong.com"
+  },
+  "description": "Load up a random bookmark! Features: Create groups of bookmark folders to randomize from, randomize a folder with right click, tab options, and more! Does not work with Firefox for Android unfortunately, add-ons are not able to access bookmarks on androids.",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "icons/icon-19.png",
+      "38": "icons/icon-38.png"
     },
-    "background": {
-		"scripts": ["shared.js", "core.js", "background.js"]
-	},
-	"commands": {
-		"_execute_browser_action": {
-			"suggested_key": {
-				"default": "Alt+Shift+R"
-			}
-		}
-	},
-    "options_ui": {
-		"page": "options.html",
-		"open_in_tab": true
-	},
-	"permissions": [
-		"storage", 
-		"bookmarks", 
-		"tabs", 
-		"menus", 
-		"unlimitedStorage",
-		"notifications"
-	]
+    "default_title": "Random Bookmark"
+  },
+  "background": {
+    "scripts": ["shared.js", "core.js", "background.js"]
+  },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      }
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "permissions": ["storage", "bookmarks", "tabs", "menus", "unlimitedStorage", "notifications"]
 }

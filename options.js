@@ -4,6 +4,7 @@ const settingsEnum = {
   TABACTIVE: "tabactive",
   CONTEXTMENU: "contextmenu",
   GROUP: "bookmarkgroups",
+  FILTERS: "filterurls",
   CONTEXTOPENCOUNT: "contextopencount",
   SHOWACTIONNOTICE: "showactionnotice",
   RANDOMIZEHISTORY: "randomizeHistory",
@@ -104,9 +105,24 @@ radioOpenOptionCurrent.addEventListener("change", function () {
   saveSettings(settingsEnum.TABOPTION);
 });
 
+// filters
+// -------------------------------------------------------------
+const textareaOptionFilter = document.getElementById("filter-urls");
+let filterUrlsOnFocus = "";
+
+textareaOptionFilter.addEventListener("focus", function () {
+  filterUrlsOnFocus = this.value;
+});
+
+textareaOptionFilter.addEventListener("blur", function () {
+  if (this.value !== filterUrlsOnFocus) {
+    saveSettings(settingsEnum.FILTERS);
+  }
+});
+
 // Automatic Refresh
 // -------------------------------------------------------------
-var checkboxAutomaticRefresh = document.getElementById("disableAutomaticRefresh");
+const checkboxAutomaticRefresh = document.getElementById("disableAutomaticRefresh");
 checkboxAutomaticRefresh.addEventListener("change", function () {
   saveSettings(settingsEnum.DISABLEAUTOMTICREFRESH);
 });
@@ -277,35 +293,7 @@ async function saveSettings(option) {
         });
 
         pluginSettings.randomOption = randomOption;
-
-        if (forceReload) {
-          // Bookmarks shuffle method was changed, if it's bybookmark or alphabetical
-          // Set all bookmark groups to reload
-          var userSyncOptions = await browser.storage.sync.get();
-          if (userSyncOptions.groups) {
-            var bookmarkGroups = userSyncOptions.groups;
-
-            for (var i = 0; i < bookmarkGroups.length; i++) {
-              // Force reload of bookmarks in storage
-              bookmarkGroups[i].reload = true;
-
-              // Reset the selected group index back to zero
-              var groupIndexName = bookmarkGroups[i].id + "_index";
-              browser.storage.local.set({
-                [groupIndexName]: 0,
-              });
-            }
-
-            browser.storage.sync.set({
-              groups: bookmarkGroups,
-            });
-
-            preloadBookmarksIntoLocalStorage("randomizeMethodChanged");
-          }
-        } else {
-          preloadBookmarksIntoLocalStorage("saveSettings");
-        }
-
+        await resetReloadOnGroups("randomizeMethodChanged");
         break;
 
       case settingsEnum.TABACTIVE:
@@ -333,6 +321,16 @@ async function saveSettings(option) {
         browser.storage.sync.set({
           disableAutomaticRefresh: disableAutomaticRefresh,
         });
+        break;
+
+      case settingsEnum.FILTERS:
+        filterUrls = document.getElementById("filter-urls").value;
+
+        await browser.storage.sync.set({
+          filters: filterUrls,
+        });
+
+        await resetReloadOnGroups("filters");
         break;
 
       case settingsEnum.RANDOMIZEHISTORY:
@@ -375,6 +373,32 @@ async function saveSettings(option) {
   }
 }
 
+async function resetReloadOnGroups(source) {
+  // Bookmarks shuffle method was changed, if it's bybookmark or alphabetical
+  // Set all bookmark groups to reload
+  const userSyncOptions = await browser.storage.sync.get();
+  if (userSyncOptions.groups) {
+    const userBookmarkGroups = userSyncOptions.groups;
+
+    for (let i = 0; i < userBookmarkGroups.length; i++) {
+      // Force reload of bookmarks in storage
+      userBookmarkGroups[i].reload = true;
+
+      // Reset the selected group index back to zero
+      const groupIndexName = userBookmarkGroups[i].id + "_index";
+      browser.storage.local.set({
+        [groupIndexName]: 0,
+      });
+    }
+
+    browser.storage.sync.set({
+      groups: userBookmarkGroups,
+    });
+
+    preloadBookmarksIntoLocalStorage(source);
+  }
+}
+
 function showSavedMessage() {
   document.getElementById("save-message").style.display = "block";
   setTimeout(function () {
@@ -400,6 +424,8 @@ async function loadSavedOptions() {
   } else if (syncRes.tabOption === "currentTab") {
     document.getElementById("openoption-current").checked = true;
   }
+
+  document.getElementById("filter-urls").value = syncRes.filters ?? "";
 
   document.getElementById("disableAutomaticRefresh").checked = syncRes.disableAutomaticRefresh;
 

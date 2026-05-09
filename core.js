@@ -14,6 +14,7 @@ var pluginSettings = {
   selectedGroup: "default",
   isDebugging: false,
   showActionNotice: false,
+  filters: [],
 };
 
 var sessionInfo = {
@@ -39,6 +40,13 @@ async function loadUserSettings() {
   pluginSettings.showContextMenu = typeof resSync.showContextMenu !== "undefined" ? resSync.showContextMenu : false;
   pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== "undefined" ? resSync.showContextOpenCountMenu : false;
   pluginSettings.showActionNotice = typeof resSync.showActionNotice !== "undefined" ? resSync.showActionNotice : false;
+
+  const savedFilters = typeof resSync.filters !== "undefined" ? resSync.filters : null;
+  const splitFilters = (savedFilters ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#") && !line.startsWith("//"));
+  pluginSettings.filters = splitFilters;
 
   if (resSync.tabOption === "newTab" || resSync.tabOption === "currentTab") {
     pluginSettings.tabOption = resSync.tabOption;
@@ -382,7 +390,7 @@ function processBookmarks(bookmarkItem, goDeeper) {
     var result = getBookmarks(bookmarkItem.children);
     bookmarksCollection = bookmarksCollection.concat(result);
   } else if (bookmarkItem.type === "bookmark") {
-    bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
+    if (allowAdd(bookmarkItem.url)) bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
   }
 
   if (bookmarkItem.children && goDeeper) {
@@ -402,11 +410,22 @@ function getBookmarks(bookmarkFolder) {
   if (typeof bookmarkFolder !== "undefined" && bookmarkFolder !== null)
     for (var i = 0; i < bookmarkFolder.length; i++) {
       if (bookmarkFolder[i].type === "bookmark") {
-        bookmarksCollection.push({ id: bookmarkFolder[i].id, title: bookmarkFolder[i].title });
+        const bookmarkItem = bookmarkFolder[i];
+        if (allowAdd(bookmarkItem.url)) bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
       }
     }
 
   return bookmarksCollection;
+}
+
+function allowAdd(url) {
+  let addBookmark = true;
+
+  if (pluginSettings.filters.length > 0) {
+    addBookmark = pluginSettings.filters.some((filter) => url.startsWith(filter)) === false;
+  }
+
+  return addBookmark;
 }
 
 function finishedLoading() {
@@ -430,9 +449,9 @@ function settlePromises(arr) {
     arr.map((promise) => {
       return promise.then(
         (value) => ({ state: "fulfilled", value }),
-        (value) => ({ state: "rejected", value })
+        (value) => ({ state: "rejected", value }),
       );
-    })
+    }),
   );
 }
 

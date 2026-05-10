@@ -47,8 +47,8 @@ function handleBrowserClickAction(tabInfo) {
     showNotification("Loading Your Bookmarks", "Sorry, please wait a moment while your bookmarks are preloaded. If this pop up keeps showing up after a minute, please go to the options page and scroll to the bottom and clear out all add-on data, and then reinstall the plugin. Sorry.");
 
     if (sessionInfo.loadingDateTimeStarted !== null) {
-      var currentDate = new Date();
-      var seconds = (currentDate.getTime() - sessionInfo.loadingDateTimeStarted) / 1000;
+      const currentDate = new Date();
+      const seconds = (currentDate.getTime() - sessionInfo.loadingDateTimeStarted) / 1000;
       if (seconds >= 30) {
         // Try reloading bookmarks again
         preloadBookmarksIntoLocalStorage("handleBrowserClickAction");
@@ -57,7 +57,7 @@ function handleBrowserClickAction(tabInfo) {
   } else {
     logToDebugConsole("pluginSettings.selectedGroup", pluginSettings.selectedGroup);
 
-    var currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
+    const currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
 
     currentGroupGet.then((resBookmarks) => {
       // resBookmarks is the array of bookmarks for the groups
@@ -65,16 +65,16 @@ function handleBrowserClickAction(tabInfo) {
         showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
       } else {
         if (pluginSettings.randomOption === "bybookmark" || pluginSettings.randomOption === "alphabetical") {
-          var groupIndex = 0;
-          var groupIndexName = pluginSettings.selectedGroup + "_index";
-          var currentGroupIndexGet = browser.storage.local.get(groupIndexName);
+          let groupIndex = 0;
+          const groupIndexName = pluginSettings.selectedGroup + "_index";
+          const currentGroupIndexGet = browser.storage.local.get(groupIndexName);
           currentGroupIndexGet.then((resIndex) => {
             if (Number.isInteger(resIndex[groupIndexName])) {
               groupIndex = resIndex[groupIndexName];
             }
 
             // Get the bookmark
-            var bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
+            const bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
 
             // Open it
             browser.bookmarks.get(bookmarkId).then(
@@ -83,7 +83,7 @@ function handleBrowserClickAction(tabInfo) {
               },
               (failed) => {
                 showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
-              }
+              },
             );
 
             // Show notice
@@ -106,21 +106,21 @@ function handleBrowserClickAction(tabInfo) {
           });
         } else {
           // Get a random index
-          var randomIndex = 0;
+          let randomIndex = 0;
 
           if (resBookmarks[pluginSettings.selectedGroup].length > 1) {
-            var r = new Random();
+            const r = new Random();
             randomIndex = r.Next(0, resBookmarks[pluginSettings.selectedGroup].length - 1);
           }
 
-          var bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
+          const bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
           browser.bookmarks.get(bookmarkId).then(
             (result) => {
               openBookmarks(result, false, tabInfo);
             },
             (failed) => {
               showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
-            }
+            },
           );
         }
       }
@@ -150,14 +150,14 @@ function handleMenuClickAction(info, tab) {
     // user clicked on last bookmark path, dont do anything currently. Maybe open the url again?
   } else if (tab === undefined) {
     // Context click, the user wants to load up a random bookmark from a folder
-    var bookmarksToOpen = 1;
+    let bookmarksToOpen = 1;
     if (info.menuItemId.startsWith("open-random")) {
       bookmarksToOpen = parseInt(info.menuItemId.replace("open-random-", ""), 10);
     }
 
-    var getBookmarkInfo = browser.bookmarks.get(info.bookmarkId);
+    const getBookmarkInfo = browser.bookmarks.get(info.bookmarkId);
     getBookmarkInfo.then(function (bookmarkInfo) {
-      var folderID = "";
+      let folderID = "";
 
       if (bookmarkInfo[0].type === "folder") {
         folderID = bookmarkInfo[0].id;
@@ -165,11 +165,11 @@ function handleMenuClickAction(info, tab) {
         folderID = bookmarkInfo[0].parentId;
       }
 
-      var gettingChildren = browser.bookmarks.getChildren(folderID);
+      const gettingChildren = browser.bookmarks.getChildren(folderID);
       gettingChildren.then(function (children) {
-        var folderBookmarks = [];
+        const folderBookmarks = [];
 
-        for (child of children) {
+        for (const child of children) {
           if (child.type === "bookmark") {
             folderBookmarks.push(child.id);
           }
@@ -178,7 +178,7 @@ function handleMenuClickAction(info, tab) {
         if (folderBookmarks.length > 0) {
           Shuffle(folderBookmarks);
 
-          var toOpen = folderBookmarks.slice(0, bookmarksToOpen);
+          const toOpen = folderBookmarks.slice(0, bookmarksToOpen);
 
           logToDebugConsole("toOpen", toOpen);
 
@@ -253,18 +253,18 @@ function handleTheBookmarks(source) {
 
   // Bookmarks was changed (added/deleted)
   // Set all bookmark groups to reload
-  var userSyncOptions = browser.storage.sync.get();
+  const userSyncOptions = browser.storage.sync.get();
   userSyncOptions.then((syncRes) => {
     logToDebugConsole("handleTheBookmarks", { syncRes: syncRes });
     if (syncRes.groups) {
-      var bookmarkGroups = syncRes.groups;
+      const bookmarkGroups = syncRes.groups;
 
-      for (var i = 0; i < bookmarkGroups.length; i++) {
+      for (let i = 0; i < bookmarkGroups.length; i++) {
         // Force reload of bookmarks in storage
         bookmarkGroups[i].reload = true;
 
         // Reset the selected group index back to zero
-        var groupIndexName = bookmarkGroups[i].id + "_index";
+        const groupIndexName = bookmarkGroups[i].id + "_index";
         browser.storage.local.set({
           [groupIndexName]: 0,
         });
@@ -324,7 +324,7 @@ function openBookmarks(bookmarks, forceNewTab, tabInfo) {
           });
         } else {
           if (sessionInfo.currentTabId === 0) {
-            var newTabInfo = browser.tabs.create({
+            const newTabInfo = browser.tabs.create({
               active: pluginSettings.tabSetActive,
               url: bookmark.url,
             });
@@ -356,7 +356,7 @@ function openBookmarks(bookmarks, forceNewTab, tabInfo) {
               (failed) => {
                 logToDebugConsole("failed", failed);
 
-                var newTabInfo = browser.tabs.create({
+                const newTabInfo = browser.tabs.create({
                   active: pluginSettings.tabSetActive,
                   url: bookmark.url,
                 });
@@ -364,7 +364,7 @@ function openBookmarks(bookmarks, forceNewTab, tabInfo) {
                 newTabInfo.then((resNewTab) => {
                   sessionInfo.currentTabId = resNewTab.id;
                 });
-              }
+              },
             );
           }
         }

@@ -1,4 +1,4 @@
-var pluginSettings = {
+const pluginSettings = {
   randomOption: "default",
   tabOption: "default",
   tabSetActive: true,
@@ -17,7 +17,7 @@ var pluginSettings = {
   filters: [],
 };
 
-var sessionInfo = {
+const sessionInfo = {
   currentTabId: 0,
   loadingDateTimeStarted: null,
 };
@@ -25,8 +25,8 @@ var sessionInfo = {
 async function loadUserSettings() {
   logToDebugConsole("loadUserSettings");
 
-  var resSync = await browser.storage.sync.get();
-  var randomOpt = "default";
+  const resSync = await browser.storage.sync.get();
+  let randomOpt = "default";
   if (resSync.randomOption === "bybookmark") {
     randomOpt = "bybookmark";
   } else if (resSync.randomOption === "alphabetical") {
@@ -34,14 +34,14 @@ async function loadUserSettings() {
   }
 
   pluginSettings.randomOption = randomOpt;
-  pluginSettings.tabSetActive = typeof resSync.setActive !== "undefined" ? resSync.setActive : true;
-  pluginSettings.disableAutomaticRefresh = typeof resSync.disableAutomaticRefresh !== "undefined" ? resSync.disableAutomaticRefresh : false;
-  pluginSettings.randomizeHistory = typeof resSync.randomizeHistory !== "undefined" ? resSync.randomizeHistory : false;
-  pluginSettings.showContextMenu = typeof resSync.showContextMenu !== "undefined" ? resSync.showContextMenu : false;
-  pluginSettings.showContextOpenCountMenu = typeof resSync.showContextOpenCountMenu !== "undefined" ? resSync.showContextOpenCountMenu : false;
-  pluginSettings.showActionNotice = typeof resSync.showActionNotice !== "undefined" ? resSync.showActionNotice : false;
+  pluginSettings.tabSetActive = resSync.setActive ?? true;
+  pluginSettings.disableAutomaticRefresh = resSync.disableAutomaticRefresh ?? false;
+  pluginSettings.randomizeHistory = resSync.randomizeHistory ?? false;
+  pluginSettings.showContextMenu = resSync.showContextMenu ?? false;
+  pluginSettings.showContextOpenCountMenu = resSync.showContextOpenCountMenu ?? false;
+  pluginSettings.showActionNotice = resSync.showActionNotice ?? false;
 
-  const savedFilters = typeof resSync.filters !== "undefined" ? resSync.filters : null;
+  const savedFilters = resSync.filters ?? null;
   const splitFilters = (savedFilters ?? "")
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -66,7 +66,7 @@ async function loadUserSettings() {
 function changeToGroups(selectedFolders) {
   logToDebugConsole("changeToGroups");
 
-  var defaultBookmarks = [
+  const defaultBookmarks = [
     {
       name: "Default",
       id: "default",
@@ -98,11 +98,11 @@ async function loadContextMenus() {
     });
   }
 
-  for (var i = 2; i <= 10; i++) {
+  for (let i = 2; i <= 10; i++) {
     removeContextOption(`open-random-${i}`);
   }
   if (pluginSettings.showContextOpenCountMenu) {
-    for (var i = 2; i <= 10; i++) {
+    for (let i = 2; i <= 10; i++) {
       await browser.menus.create({
         id: `open-random-${i}`,
         title: "Load " + i + " Random Bookmarks",
@@ -121,14 +121,14 @@ async function loadBrowserActionGroups() {
   const userAgent = navigator.userAgent.toLowerCase();
   const isDarkTheme = (theme?.properties?.color_scheme || userAgent.includes("ubuntu")) ?? false;
 
-  var userLocalStorage = await browser.storage.local.get();
-  var userSyncOptions = await browser.storage.sync.get();
+  const userLocalStorage = await browser.storage.local.get();
+  const userSyncOptions = await browser.storage.sync.get();
 
   if (userSyncOptions.groups) {
-    var bookmarkGroupSettings = userSyncOptions.groups;
+    const bookmarkGroupSettings = userSyncOptions.groups;
     bookmarkGroupSettings.sort(compareBookmarkGroup);
 
-    var groupExists = bookmarkGroupSettings.find((obj) => {
+    const groupExists = bookmarkGroupSettings.find((obj) => {
       return obj.id === pluginSettings.selectedGroup;
     });
 
@@ -140,7 +140,7 @@ async function loadBrowserActionGroups() {
       });
     }
 
-    var parentId;
+    let parentId;
 
     if (bookmarkGroupSettings.length > 5) {
       removeContextOption("options-groupparent");
@@ -160,7 +160,7 @@ async function loadBrowserActionGroups() {
     createContextOption("default", "Default", parentId);
 
     // Add the rest of the groups
-    for (var i = 0; i < bookmarkGroupSettings.length; i++) {
+    for (let i = 0; i < bookmarkGroupSettings.length; i++) {
       if (bookmarkGroupSettings[i].id !== "default") {
         createContextOption(bookmarkGroupSettings[i].id, bookmarkGroupSettings[i].name, parentId);
       }
@@ -253,7 +253,9 @@ async function removeContextOption(id) {
 
   try {
     await browser.menus.remove(id);
-  } catch (err) {}
+  } catch {
+    // Failed, who knows
+  }
 }
 
 async function createContextOption(id, name, parent) {
@@ -261,15 +263,15 @@ async function createContextOption(id, name, parent) {
 
   removeContextOption(id);
 
-  var menuItem = {
+  const menuItem = {
     id: id,
     type: "radio",
     title: name,
-    checked: id === pluginSettings.selectedGroup ? true : false,
+    checked: id === pluginSettings.selectedGroup,
     contexts: ["browser_action"],
   };
 
-  if (typeof parent != "undefined" && parent !== "") {
+  if (typeof parent !== "undefined" && parent !== "") {
     menuItem.parentId = parent;
   }
 
@@ -284,14 +286,14 @@ async function preloadBookmarksIntoLocalStorage(source) {
     pluginSettings.loadingBookmarks = true;
 
     // Preload only the selected group.
-    var userSyncOptions = await browser.storage.sync.get();
+    const userSyncOptions = await browser.storage.sync.get();
 
-    var found = userSyncOptions.groups.filter((obj) => {
+    const found = userSyncOptions.groups.filter((obj) => {
       return obj.id === pluginSettings.selectedGroup;
     });
 
     if (found.length) {
-      var group = found[0];
+      const group = found[0];
 
       if (group.reload) {
         group.reload = false;
@@ -325,18 +327,18 @@ function loadBookmarksIntoLocalStorage(id, folders) {
   logToDebugConsole("loadBookmarksIntoLocalStorage", { id: id, folders: folders });
 
   if (folders.length > 0) {
-    var selectedPromises = [];
+    const selectedPromises = [];
 
     // Selected Bookmarks
-    for (var i = 0; i < folders.length; i++) {
+    for (let i = 0; i < folders.length; i++) {
       selectedPromises.push(browser.bookmarks.getChildren(folders[i]));
     }
 
     processBookmarkPromises(id, selectedPromises);
   } else {
     // All Bookmarks
-    var allBookmarks = browser.bookmarks.getTree();
-    var allPromises = [allBookmarks];
+    const allBookmarks = browser.bookmarks.getTree();
+    const allPromises = [allBookmarks];
 
     processBookmarkPromises(id, allPromises);
   }
@@ -345,21 +347,21 @@ function loadBookmarksIntoLocalStorage(id, folders) {
 function processBookmarkPromises(id, promises) {
   logToDebugConsole("processBookmarkPromises", { id: id, promises: promises });
 
-  settlePromises(promises).then((results) => {
-    var bookmarksToSave = [];
+  Promise.allSettled(promises).then((results) => {
+    let bookmarksToSave = [];
 
     results.forEach((result) => {
       logToDebugConsole("processBookmarkPromises Result", result);
 
-      if (result.state === "fulfilled") {
-        for (var i = 0; i < result.value.length; i++) {
-          var r = processBookmarks(result.value[i], result.value[i].id === "root________");
+      if (result.status === "fulfilled") {
+        for (let i = 0; i < result.value.length; i++) {
+          const r = processBookmarks(result.value[i], result.value[i].id === "root________");
           bookmarksToSave = bookmarksToSave.concat(r);
         }
       }
     });
 
-    var uniqueBookmarks = bookmarksToSave.filter(function (elem, index, self) {
+    const uniqueBookmarks = bookmarksToSave.filter(function (elem, index, self) {
       return index === self.indexOf(elem);
     });
 
@@ -384,18 +386,18 @@ function processBookmarkPromises(id, promises) {
 function processBookmarks(bookmarkItem, goDeeper) {
   //logToDebugConsole('processBookmarks', { 'bookmarkItem': bookmarkItem, 'goDeeper': goDeeper });
 
-  var bookmarksCollection = [];
+  let bookmarksCollection = [];
 
   if (bookmarkItem.type === "folder") {
-    var result = getBookmarks(bookmarkItem.children);
+    const result = getBookmarks(bookmarkItem.children);
     bookmarksCollection = bookmarksCollection.concat(result);
   } else if (bookmarkItem.type === "bookmark") {
     if (allowAdd(bookmarkItem.url)) bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
   }
 
   if (bookmarkItem.children && goDeeper) {
-    for (child of bookmarkItem.children) {
-      var result = processBookmarks(child, goDeeper);
+    for (const child of bookmarkItem.children) {
+      const result = processBookmarks(child, goDeeper);
       bookmarksCollection = bookmarksCollection.concat(result);
     }
   }
@@ -406,9 +408,9 @@ function processBookmarks(bookmarkItem, goDeeper) {
 function getBookmarks(bookmarkFolder) {
   logToDebugConsole("getBookmarks", { bookmarkFolder: bookmarkFolder });
 
-  var bookmarksCollection = [];
+  const bookmarksCollection = [];
   if (typeof bookmarkFolder !== "undefined" && bookmarkFolder !== null)
-    for (var i = 0; i < bookmarkFolder.length; i++) {
+    for (let i = 0; i < bookmarkFolder.length; i++) {
       if (bookmarkFolder[i].type === "bookmark") {
         const bookmarkItem = bookmarkFolder[i];
         if (allowAdd(bookmarkItem.url)) bookmarksCollection.push({ id: bookmarkItem.id, title: bookmarkItem.title });
@@ -443,25 +445,13 @@ function logToDebugConsole(what, data) {
   }
 }
 
-// https://stackoverflow.com/a/32979111/13690517
-function settlePromises(arr) {
-  return Promise.all(
-    arr.map((promise) => {
-      return promise.then(
-        (value) => ({ state: "fulfilled", value }),
-        (value) => ({ state: "rejected", value }),
-      );
-    }),
-  );
-}
-
 async function getBookmarkPath(bookmarkId) {
   let path = [];
   let currentId = bookmarkId;
 
   while (currentId) {
     // Get the current bookmark or folder
-    let [currentBookmark] = await browser.bookmarks.get(currentId);
+    const [currentBookmark] = await browser.bookmarks.get(currentId);
     path.unshift(currentBookmark.title); // Add the title to the path
     currentId = currentBookmark.parentId; // Move to the parent
   }

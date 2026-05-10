@@ -8,14 +8,14 @@ const settingsEnum = {
   CONTEXTOPENCOUNT: "contextopencount",
   SHOWACTIONNOTICE: "showactionnotice",
   RANDOMIZEHISTORY: "randomizeHistory",
-  DISABLEAUTOMTICREFRESH: "disableautomaticrefresh",
+  DISABLEAUTOMATICREFRESH: "disableautomaticrefresh",
 };
 
-var loading = true;
-var treeID = "#bookmarks-wrapper";
-var replacements = { "&": "&amp;", '"': "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;" };
+let loading = true;
+const treeID = "#bookmarks-wrapper";
+const replacements = { "&": "&amp;", '"': "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;" };
 
-var bookmarkGroupSettings = [
+let bookmarkGroupSettings = [
   {
     name: "Default",
     id: "default",
@@ -24,83 +24,73 @@ var bookmarkGroupSettings = [
   },
 ];
 
-var selectAll = document.getElementById("select-all");
-selectAll.onclick = function () {
-  var allCheckboxes = document.getElementsByName("selected-folder");
-  for (var i = 0, n = allCheckboxes.length; i < n; i++) {
+const selectAll = document.getElementById("select-all");
+selectAll.addEventListener("click", function () {
+  const allCheckboxes = document.getElementsByName("selected-folder");
+  for (let i = 0, n = allCheckboxes.length; i < n; i++) {
     allCheckboxes[i].checked = selectAll.checked;
   }
-};
+});
 
-var randomizedHistoryTracking = false;
-
-// Close Settings
-// -------------------------------------------------------------
-// var closeSettings = document.getElementById('action-close');
-// closeSettings.onclick = function() {
-//     var currentTab = browser.tabs.getCurrent();
-// 	currentTab.then((res) => {
-// 		browser.tabs.remove(res.id);
-// 	});
-// };
+let randomizedHistoryTracking = false;
 
 // Clear All Data
-var btnClearData = document.getElementById("action-clear-data");
-btnClearData.onclick = function (e) {
+const btnClearData = document.getElementById("action-clear-data");
+btnClearData.addEventListener("click", function () {
   browser.storage.sync.clear();
   browser.storage.local.clear();
   location.reload();
-};
+});
 
 // Log all Data
-var btnLogAllData = document.getElementById("action-log-all-data");
-btnLogAllData.onclick = async function (e) {
-  var localStorage = await browser.storage.local.get(null);
-  console.log(localStorage);
+const btnLogAllData = document.getElementById("action-log-all-data");
+btnLogAllData.addEventListener("click", async function (e) {
+  const localStorage = await browser.storage.local.get(null);
+  console.log("Local Storage", localStorage);
 
-  var syncStorage = await browser.storage.sync.get(null);
-  console.log(syncStorage);
+  const syncStorage = await browser.storage.sync.get(null);
+  console.log("Sync Storage", syncStorage);
 
-  console.log(pluginSettings);
-};
+  console.log("Plugin Settings", pluginSettings);
+});
 
 // Randomize Method
 // -------------------------------------------------------------
-var radioRandomizeDefault = document.getElementById("randomoption-default");
+const radioRandomizeDefault = document.getElementById("randomoption-default");
 radioRandomizeDefault.addEventListener("change", function () {
   saveSettings(settingsEnum.RANDOMIZEMETHOD);
 });
 
-var radioRandomizeByBookmark = document.getElementById("randomoption-bybookmark");
+const radioRandomizeByBookmark = document.getElementById("randomoption-bybookmark");
 radioRandomizeByBookmark.addEventListener("change", function () {
   saveSettings(settingsEnum.RANDOMIZEMETHOD);
 });
 
-var radioRandomizeAlphbetical = document.getElementById("randomoption-alphabetical");
+const radioRandomizeAlphbetical = document.getElementById("randomoption-alphabetical");
 radioRandomizeAlphbetical.addEventListener("change", function () {
   saveSettings(settingsEnum.RANDOMIZEMETHOD);
 });
 
 // Tab Options
 // -------------------------------------------------------------
-var checkboxSetTabActive = document.getElementById("activeoption");
+const checkboxSetTabActive = document.getElementById("activeoption");
 checkboxSetTabActive.addEventListener("change", function () {
   saveSettings(settingsEnum.TABACTIVE);
 });
 
 // Tab Open Options
 // ------------------------------------------------------------
-var radioOpenOptionDefault = document.getElementById("openoption-default");
+const radioOpenOptionDefault = document.getElementById("openoption-default");
 radioOpenOptionDefault.addEventListener("change", function () {
   saveSettings(settingsEnum.TABOPTION);
 });
 
-var radioOpenOptionNew = document.getElementById("openoption-new");
+const radioOpenOptionNew = document.getElementById("openoption-new");
 radioOpenOptionNew.addEventListener("change", function () {
   saveSettings(settingsEnum.TABOPTION);
 });
 
-var radioOpenOptionCurrent = document.getElementById("openoption-current");
+const radioOpenOptionCurrent = document.getElementById("openoption-current");
 radioOpenOptionCurrent.addEventListener("change", function () {
   saveSettings(settingsEnum.TABOPTION);
 });
@@ -124,45 +114,45 @@ textareaOptionFilter.addEventListener("blur", function () {
 // -------------------------------------------------------------
 const checkboxAutomaticRefresh = document.getElementById("disableAutomaticRefresh");
 checkboxAutomaticRefresh.addEventListener("change", function () {
-  saveSettings(settingsEnum.DISABLEAUTOMTICREFRESH);
+  saveSettings(settingsEnum.DISABLEAUTOMATICREFRESH);
 });
 
 // Bookmark History
 // -------------------------------------------------------------
-var checkboxRandomizeHistory = document.getElementById("randomizeHistory");
+const checkboxRandomizeHistory = document.getElementById("randomizeHistory");
 checkboxRandomizeHistory.addEventListener("change", function () {
   saveSettings(settingsEnum.RANDOMIZEHISTORY);
 });
 
 // Context Options
 // -------------------------------------------------------------
-var checkboxContextMenu = document.getElementById("showContextMenu");
+const checkboxContextMenu = document.getElementById("showContextMenu");
 checkboxContextMenu.addEventListener("change", function () {
   saveSettings(settingsEnum.CONTEXTMENU);
 });
 
-var checkboxContextOpenCountMenu = document.getElementById("showContextOpenCountMenu");
+const checkboxContextOpenCountMenu = document.getElementById("showContextOpenCountMenu");
 checkboxContextOpenCountMenu.addEventListener("change", function () {
   saveSettings(settingsEnum.CONTEXTOPENCOUNT);
 });
 
 // Helper Options
 // -------------------------------------------------------------
-var checkboxActionNotice = document.getElementById("showActionNotice");
+const checkboxActionNotice = document.getElementById("showActionNotice");
 checkboxActionNotice.addEventListener("change", function () {
   saveSettings(settingsEnum.SHOWACTIONNOTICE);
 });
 
 // Bookmark Option
 // -------------------------------------------------------------
-var bookmarkGroups = document.getElementById("bookmark-groups");
-var addBookmarkGroup = document.getElementById("action-add-group");
-var editBookmarkGroup = document.getElementById("action-edit-group");
-var deleteBookmarkGroup = document.getElementById("action-delete-group");
-var previousSelectedGroup = "nothing";
+const bookmarkGroups = document.getElementById("bookmark-groups");
+const addBookmarkGroup = document.getElementById("action-add-group");
+const editBookmarkGroup = document.getElementById("action-edit-group");
+const deleteBookmarkGroup = document.getElementById("action-delete-group");
+let previousSelectedGroup = "nothing";
 
-bookmarkGroups.onchange = function () {
-  var selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
+bookmarkGroups.addEventListener("change", function () {
+  const selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
   editBookmarkGroup.disabled = selected === "default";
   deleteBookmarkGroup.disabled = selected === "default";
 
@@ -171,26 +161,23 @@ bookmarkGroups.onchange = function () {
 
     loadSelectedBookmarks(selected);
   }
-};
+});
 
-addBookmarkGroup.onclick = function () {
-  var name = prompt("Name of new bookmark group");
+addBookmarkGroup.addEventListener("click", function () {
+  const name = prompt("Name of new bookmark group");
   if (name && name.trim() !== "") {
-    var ticks = 621355968e9 + new Date().getTime() * 1e4;
-    var hash = "bookmarks_" + (name + ticks.toString()).hashCode().toString();
-
-    // Save current bookmark group
-    saveBookmarks();
+    const ticks = 621355968e9 + new Date().getTime() * 1e4;
+    const hash = "bookmarks_" + (name + ticks.toString()).hashCode().toString();
 
     // Add new bookmark group to select dropdown
     // And select it
-    var newOption = document.createElement("option");
+    const newOption = document.createElement("option");
     newOption.value = hash;
     newOption.text = name.trim();
     bookmarkGroups.add(newOption);
     bookmarkGroups.value = hash;
 
-    var newGroupInfo = {
+    const newGroupInfo = {
       name: name.trim(),
       id: hash.toString(),
       selected: [],
@@ -202,27 +189,25 @@ addBookmarkGroup.onclick = function () {
     saveBookmarks();
 
     // Deselect any checkboxes
-    var allCheckboxes = document.getElementsByName("selected-folder");
-    for (var i = 0, n = allCheckboxes.length; i < n; i++) {
+    const allCheckboxes = document.getElementsByName("selected-folder");
+    for (let i = 0, n = allCheckboxes.length; i < n; i++) {
       allCheckboxes[i].checked = false;
     }
 
     // Enable buttons
     editBookmarkGroup.disabled = false;
     deleteBookmarkGroup.disabled = false;
-
-    groupsChanged();
   }
-};
+});
 
-editBookmarkGroup.onclick = function () {
-  var selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
-  var text = bookmarkGroups.options[bookmarkGroups.selectedIndex].text;
+editBookmarkGroup.addEventListener("click", function () {
+  const selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
+  const text = bookmarkGroups.options[bookmarkGroups.selectedIndex].text;
 
   if (selected !== "default") {
-    var nameEdit = prompt("Edit name of bookmark group", text);
+    const nameEdit = prompt("Edit name of bookmark group", text);
     if (nameEdit && nameEdit.trim() !== "") {
-      var editGroupInfo = bookmarkGroupSettings.find((obj) => {
+      const editGroupInfo = bookmarkGroupSettings.find((obj) => {
         return obj.id === selected;
       });
 
@@ -230,18 +215,16 @@ editBookmarkGroup.onclick = function () {
       saveBookmarks();
 
       bookmarkGroups.options[bookmarkGroups.selectedIndex].textContent = nameEdit;
-
-      groupsChanged();
     }
   }
-};
+});
 
-deleteBookmarkGroup.onclick = function () {
-  var selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
+deleteBookmarkGroup.addEventListener("click", function () {
+  const selected = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
 
   if (selected !== "default") {
     if (confirm("Please confirm you want to delete this group")) {
-      for (var i = 0; i < bookmarkGroupSettings.length; i++) {
+      for (let i = 0; i < bookmarkGroupSettings.length; i++) {
         if (bookmarkGroupSettings[i].id === selected) {
           bookmarkGroupSettings.splice(i, 1);
           // Also remove from local storage if it was sync'd
@@ -261,7 +244,7 @@ deleteBookmarkGroup.onclick = function () {
       deleteBookmarkGroup.disabled = true;
 
       // Remove from options
-      for (var i = 0; i < bookmarkGroups.options.length; i++) {
+      for (let i = 0; i < bookmarkGroups.options.length; i++) {
         if (bookmarkGroups.options[i].value === selected) {
           bookmarkGroups.remove(i);
           break;
@@ -269,23 +252,19 @@ deleteBookmarkGroup.onclick = function () {
       }
 
       loadSelectedBookmarks("default");
-      groupsChanged();
     }
   }
-};
+});
 
 async function saveSettings(option) {
   if (loading === false) {
     switch (option) {
       case settingsEnum.RANDOMIZEMETHOD:
-        var randomOption = "default";
-        var forceReload = false;
+        let randomOption = "default";
         if (document.getElementById("randomoption-bybookmark").checked) {
           randomOption = "bybookmark";
-          forceReload = true;
         } else if (document.getElementById("randomoption-alphabetical").checked) {
           randomOption = "alphabetical";
-          forceReload = true;
         }
 
         browser.storage.sync.set({
@@ -303,7 +282,7 @@ async function saveSettings(option) {
         break;
 
       case settingsEnum.TABOPTION:
-        var tabOption = "default";
+        let tabOption = "default";
         if (document.getElementById("openoption-new").checked) {
           tabOption = "newTab";
         } else if (document.getElementById("openoption-current").checked) {
@@ -315,7 +294,7 @@ async function saveSettings(option) {
         });
         break;
 
-      case settingsEnum.DISABLEAUTOMTICREFRESH:
+      case settingsEnum.DISABLEAUTOMATICREFRESH:
         disableAutomaticRefresh = document.getElementById("disableAutomaticRefresh").checked;
 
         browser.storage.sync.set({
@@ -407,7 +386,7 @@ function showSavedMessage() {
 }
 
 async function loadSavedOptions() {
-  var syncRes = await browser.storage.sync.get();
+  const syncRes = await browser.storage.sync.get();
 
   if (syncRes.randomOption === "bybookmark") {
     document.getElementById("randomoption-bybookmark").checked = true;
@@ -434,7 +413,7 @@ async function loadSavedOptions() {
   document.getElementById("history-list-wrapper").style.display = randomizedHistoryTracking ? "block" : "none";
   if (randomizedHistoryTracking) {
     const storageCollection = await browser.storage.local.get("randomized-history");
-    const historyCollection = storageCollection.hasOwnProperty("randomized-history") ? JSON.parse(storageCollection["randomized-history"]) : [];
+    const historyCollection = Object.hasOwn(storageCollection, "randomized-history") ? JSON.parse(storageCollection["randomized-history"]) : [];
     loadRandomizeHistory(historyCollection);
   }
 
@@ -451,9 +430,9 @@ async function loadSavedOptions() {
 
   // Load bookmark groups
   bookmarkGroupSettings.sort(compareBookmarkGroup);
-  for (var i = 0; i < bookmarkGroupSettings.length; i++) {
+  for (let i = 0; i < bookmarkGroupSettings.length; i++) {
     if (bookmarkGroupSettings[i].id !== "default") {
-      var newOption = document.createElement("option");
+      const newOption = document.createElement("option");
       newOption.value = bookmarkGroupSettings[i].id;
       newOption.text = bookmarkGroupSettings[i].name;
       bookmarkGroups.add(newOption);
@@ -466,9 +445,9 @@ async function loadSavedOptions() {
 }
 
 function selectCheckbox(checkbox) {
-  var currentGroupID = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
+  const currentGroupID = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
 
-  var selectedGroup = bookmarkGroupSettings.find((obj) => {
+  const selectedGroup = bookmarkGroupSettings.find((obj) => {
     return obj.id === currentGroupID;
   });
 
@@ -476,7 +455,7 @@ function selectCheckbox(checkbox) {
     if (selectedGroup.selected.filter((e) => e === checkbox.value).length > 0) {
       if (checkbox.checked === false) {
         // Remove it from the bookmarks
-        var bookmarkIndex = selectedGroup.selected.indexOf(checkbox.value);
+        const bookmarkIndex = selectedGroup.selected.indexOf(checkbox.value);
         if (bookmarkIndex !== -1) {
           selectedGroup.selected.splice(bookmarkIndex, 1);
         }
@@ -491,28 +470,18 @@ function selectCheckbox(checkbox) {
 }
 
 function selectChildren(bookmarkId) {
-  var currentGroupID = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
+  const currentGroupID = bookmarkGroups.options[bookmarkGroups.selectedIndex].value;
 
-  var selectedGroup = bookmarkGroupSettings.find((obj) => {
+  const selectedGroup = bookmarkGroupSettings.find((obj) => {
     return obj.id === currentGroupID;
   });
 
   if (selectedGroup) {
-    var parentCheckbox = document.getElementById(bookmarkId);
-
-    var childCheckboxes = document.body.querySelectorAll('[data-parent="' + bookmarkId + '"]');
-    for (var i = 0, n = childCheckboxes.length; i < n; i++) {
+    const childCheckboxes = document.body.querySelectorAll('[data-parent="' + bookmarkId + '"]');
+    for (let i = 0, n = childCheckboxes.length; i < n; i++) {
       childCheckboxes[i].checked = true;
 
-      if (selectedGroup.selected.filter((e) => e === childCheckboxes[i].value).length > 0) {
-        if (childCheckboxes[i].checked === false) {
-          // Remove it from the bookmarks
-          var bookmarkIndex = selectedGroup.selected.indexOf(childCheckboxes[i].value);
-          if (bookmarkIndex !== -1) {
-            selectedGroup.selected.splice(bookmarkIndex, 1);
-          }
-        }
-      } else if (childCheckboxes[i].checked) {
+      if (!selectedGroup.selected.includes(childCheckboxes[i].value)) {
         selectedGroup.selected.push(childCheckboxes[i].value);
       }
     }
@@ -524,18 +493,18 @@ function selectChildren(bookmarkId) {
 
 function loadSelectedBookmarks(groupID) {
   // Deselect all the checkboxes
-  var allCheckboxes = document.getElementsByName("selected-folder");
-  for (var i = 0, n = allCheckboxes.length; i < n; i++) {
+  const allCheckboxes = document.getElementsByName("selected-folder");
+  for (let i = 0, n = allCheckboxes.length; i < n; i++) {
     allCheckboxes[i].checked = false;
   }
 
   // Load bookmark group selected options
-  var groupInfo = bookmarkGroupSettings.find((obj) => {
+  const groupInfo = bookmarkGroupSettings.find((obj) => {
     return obj.id === groupID;
   });
 
   if (groupInfo) {
-    for (var i = 0; i < groupInfo.selected.length; i++) {
+    for (let i = 0; i < groupInfo.selected.length; i++) {
       if (document.getElementById(groupInfo.selected[i]) !== null) {
         document.getElementById(groupInfo.selected[i]).checked = true;
       }
@@ -545,32 +514,33 @@ function loadSelectedBookmarks(groupID) {
 
 function options_processBookmarks(bookmarkItem, indent, parentID) {
   if (bookmarkItem.type === "folder" && bookmarkItem.title !== "") {
-    var countOfBookmarks = 0;
-    for (var i = 0; i < bookmarkItem.children.length; i++) {
+    let countOfBookmarks = 0;
+    for (let i = 0; i < bookmarkItem.children.length; i++) {
       if (bookmarkItem.children[i].type === "bookmark") countOfBookmarks++;
     }
 
-    var tbody = document.getElementById("bookmarks-folders");
-    var tr = document.createElement("tr");
+    const tbody = document.getElementById("bookmarks-folders");
+    const tr = document.createElement("tr");
 
-    var tdInput = document.createElement("td");
+    const tdInput = document.createElement("td");
     tdInput.style.textAlign = "center";
 
-    var tdCheckbox = document.createElement("input");
+    const tdCheckbox = document.createElement("input");
     tdCheckbox.type = "checkbox";
     tdCheckbox.name = "selected-folder";
     tdCheckbox.value = bookmarkItem.id;
     tdCheckbox.id = bookmarkItem.id;
     tdCheckbox.setAttribute("data-parent", parentID);
-    tdCheckbox.onclick = function () {
+
+    tdCheckbox.addEventListener("click", function () {
       selectCheckbox(this);
-    };
+    });
     tdInput.appendChild(tdCheckbox);
     tr.appendChild(tdInput);
 
-    var tdInfo = document.createElement("td");
+    const tdInfo = document.createElement("td");
 
-    var labelTitle = document.createElement("label");
+    const labelTitle = document.createElement("label");
     labelTitle.htmlFor = bookmarkItem.id;
     labelTitle.appendChild(document.createTextNode(makeIndent(indent) + " " + escapeHTML(bookmarkItem.title)));
 
@@ -580,9 +550,9 @@ function options_processBookmarks(bookmarkItem, indent, parentID) {
     tdInfo.appendChild(labelTitle);
 
     if (bookmarkItem.children) {
-      var showToggle = false;
+      let showToggle = false;
 
-      for (var i = 0; i < bookmarkItem.children.length; i++) {
+      for (let i = 0; i < bookmarkItem.children.length; i++) {
         if (bookmarkItem.children[i].type === "folder") {
           showToggle = true;
           break;
@@ -590,7 +560,7 @@ function options_processBookmarks(bookmarkItem, indent, parentID) {
       }
 
       if (showToggle) {
-        var btnSelectChildren = document.createElement("button");
+        const btnSelectChildren = document.createElement("button");
         btnSelectChildren.textContent = "Select direct sub-folders";
         btnSelectChildren.style.fontSize = "12px";
         btnSelectChildren.style.color = "#555";
@@ -598,9 +568,9 @@ function options_processBookmarks(bookmarkItem, indent, parentID) {
         btnSelectChildren.style.marginTop = "5px";
         btnSelectChildren.type = "button";
 
-        btnSelectChildren.onclick = function () {
+        btnSelectChildren.addEventListener("click", function () {
           selectChildren(bookmarkItem.id);
-        };
+        });
 
         tdInfo.appendChild(btnSelectChildren);
       }
@@ -608,7 +578,7 @@ function options_processBookmarks(bookmarkItem, indent, parentID) {
 
     tr.appendChild(tdInfo);
 
-    var tdCount = document.createElement("td");
+    const tdCount = document.createElement("td");
     tdCount.style.textAlign = "right";
     tdCount.appendChild(document.createTextNode(escapeHTML(countOfBookmarks.toString())));
 
@@ -645,10 +615,8 @@ function saveBookmarks() {
   showSavedMessage();
 }
 
-function groupsChanged() {}
-
 async function loadUsedSpaceSize() {
-  var gettingSpace = await browser.storage.sync.getBytesInUse(null);
+  const gettingSpace = await browser.storage.sync.getBytesInUse(null);
   document.getElementById("used-storage-sync").appendChild(document.createTextNode(gettingSpace));
 }
 
@@ -665,7 +633,9 @@ async function loadRandomizeHistory(items) {
     try {
       const bookmarkInfo = await browser.bookmarks.get(id);
       bookmarks.push(bookmarkInfo[0]);
-    } catch (error) {}
+    } catch {
+      // Bookmark was deleted — skip it
+    }
   }
 
   // No items found
@@ -703,9 +673,9 @@ async function loadRandomizeHistory(items) {
 }
 
 async function setup() {
-  var bookmarksTree = await browser.bookmarks.getTree();
+  const bookmarksTree = await browser.bookmarks.getTree();
   options_processBookmarks(bookmarksTree[0], 0, "root");
-  loadSavedOptions();
+  await loadSavedOptions();
 }
 
 document.addEventListener("DOMContentLoaded", setup);

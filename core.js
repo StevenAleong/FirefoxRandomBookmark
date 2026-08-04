@@ -3,6 +3,7 @@ const pluginSettings = {
   tabOption: "default",
   tabSetActive: true,
   disableAutomaticRefresh: false,
+  randomizeNewTab: false,
   randomizeHistory: false,
   maxHistory: 10,
   showContextMenu: false,
@@ -36,6 +37,7 @@ async function loadUserSettings() {
   pluginSettings.randomOption = randomOpt;
   pluginSettings.tabSetActive = resSync.setActive ?? true;
   pluginSettings.disableAutomaticRefresh = resSync.disableAutomaticRefresh ?? false;
+  pluginSettings.randomizeNewTab = resSync.randomizeNewTab ?? false;
   pluginSettings.randomizeHistory = resSync.randomizeHistory ?? false;
   pluginSettings.showContextMenu = resSync.showContextMenu ?? false;
   pluginSettings.showContextOpenCountMenu = resSync.showContextOpenCountMenu ?? false;

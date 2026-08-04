@@ -19,10 +19,14 @@ async function init() {
 
   // Watch when user changes their bookmarks.
   browser.bookmarks.onCreated.addListener(handleBookmarksCreatedAction);
+
   // Don't need to refresh on edit anymore as i'm using the ID instead
   // browser.bookmarks.onChanged.addListener(handleBookmarksChangedAction);
   browser.bookmarks.onMoved.addListener(handleBookmarksMovedAction);
   browser.bookmarks.onRemoved.addListener(handleBookmarksRemovedAction);
+
+  // Watch for when a new tab is created
+  browser.tabs.onCreated.addListener(handleNewTabAction);
 
   if (localStorage.getItem("randomized-history") !== null) {
     localStorage.removeItem("randomized-history");
@@ -40,7 +44,7 @@ function showNotification(title, msg) {
   });
 }
 
-function handleBrowserClickAction(tabInfo) {
+async function handleBrowserClickAction(tabInfo) {
   logToDebugConsole("handleBrowserClickAction");
 
   if (pluginSettings.initialLoading || pluginSettings.loadingBookmarks || pluginSettings.loadingGroups) {
@@ -57,74 +61,95 @@ function handleBrowserClickAction(tabInfo) {
   } else {
     logToDebugConsole("pluginSettings.selectedGroup", pluginSettings.selectedGroup);
 
-    const currentGroupGet = browser.storage.local.get(pluginSettings.selectedGroup);
+    const resBookmarks = await browser.storage.local.get(pluginSettings.selectedGroup);
 
-    currentGroupGet.then((resBookmarks) => {
-      // resBookmarks is the array of bookmarks for the groups
-      if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
-        showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
-      } else {
-        if (pluginSettings.randomOption === "bybookmark" || pluginSettings.randomOption === "alphabetical") {
-          let groupIndex = 0;
-          const groupIndexName = pluginSettings.selectedGroup + "_index";
-          const currentGroupIndexGet = browser.storage.local.get(groupIndexName);
-          currentGroupIndexGet.then((resIndex) => {
-            if (Number.isInteger(resIndex[groupIndexName])) {
-              groupIndex = resIndex[groupIndexName];
-            }
+    // resBookmarks is the array of bookmarks for the groups
+    if (resBookmarks[pluginSettings.selectedGroup].length === 0) {
+      showNotification("No bookmarks found", "Start adding bookmarks first or check the add-on settings");
+    } else {
+      const bookmarkInfo = await getRandomBookmark(resBookmarks);
+      console.log("bookmarkInfo", bookmarkInfo);
+      openBookmarks(bookmarkInfo, false, tabInfo);
+    }
+  }
+}
 
-            // Get the bookmark
-            const bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
+async function getRandomBookmark(resBookmarks) {
+  logToDebugConsole("getRandomBookmark");
 
-            // Open it
-            browser.bookmarks.get(bookmarkId).then(
-              (result) => {
-                openBookmarks(result, false, tabInfo);
-              },
-              (failed) => {
-                showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
-              },
-            );
+  if (pluginSettings.randomOption === "bybookmark" || pluginSettings.randomOption === "alphabetical") {
+    const groupIndexName = pluginSettings.selectedGroup + "_index";
 
-            // Show notice
-            if (pluginSettings.showActionNotice === true) {
-              showNotification("Information", "Showing bookmark " + (groupIndex + 1) + "/" + resBookmarks[pluginSettings.selectedGroup].length);
-            }
+    // Get the current group index
+    const resIndex = await browser.storage.local.get(groupIndexName);
 
-            // Set the index for when the user presses the button again
-            groupIndex = groupIndex + 1;
+    let groupIndex = 0;
+    if (Number.isInteger(resIndex[groupIndexName])) {
+      groupIndex = resIndex[groupIndexName];
+    }
 
-            if (groupIndex >= resBookmarks[pluginSettings.selectedGroup].length) {
-              // Hit the limit, recache the group
-              groupIndex = 0;
-              handleTheBookmarks("reachedTheEnd");
-            }
+    // Get the bookmark
+    const bookmarkId = resBookmarks[pluginSettings.selectedGroup][groupIndex];
 
-            browser.storage.local.set({
-              [groupIndexName]: groupIndex,
-            });
-          });
-        } else {
-          // Get a random index
-          let randomIndex = 0;
+    try {
+      const bookmarkInfo = await browser.bookmarks.get(bookmarkId);
 
-          if (resBookmarks[pluginSettings.selectedGroup].length > 1) {
-            const r = new Random();
-            randomIndex = r.Next(0, resBookmarks[pluginSettings.selectedGroup].length - 1);
-          }
+      // Set the index for when the user presses the button again
+      groupIndex = groupIndex + 1;
 
-          const bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
-          browser.bookmarks.get(bookmarkId).then(
-            (result) => {
-              openBookmarks(result, false, tabInfo);
-            },
-            (failed) => {
-              showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
-            },
-          );
-        }
+      if (groupIndex >= resBookmarks[pluginSettings.selectedGroup].length) {
+        // Hit the limit, recache the group
+        groupIndex = 0;
+        handleTheBookmarks("reachedTheEnd");
       }
-    });
+
+      browser.storage.local.set({
+        [groupIndexName]: groupIndex,
+      });
+
+      return bookmarkInfo;
+    } catch (bookmarkError) {
+      showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
+      throw new Error("Bookmark not found: " + bookmarkError.message);
+    }
+  } else {
+    // Get a random index
+    let randomIndex = 0;
+
+    if (resBookmarks[pluginSettings.selectedGroup].length > 1) {
+      randomIndex = Math.floor(Math.random() * resBookmarks[pluginSettings.selectedGroup].length);
+    }
+
+    const bookmarkId = resBookmarks[pluginSettings.selectedGroup][randomIndex];
+    try {
+      return await browser.bookmarks.get(bookmarkId);
+    } catch (bookmarkError) {
+      showNotification("Bookmark Not Found", "You must have deleted a bookmark, could not find this one.");
+      throw new Error("Bookmark not found: " + bookmarkError.message);
+    }
+  }
+}
+
+async function handleNewTabAction(tabInfo) {
+  logToDebugConsole("handleNewTabAction", tabInfo);
+
+  if (pluginSettings.randomizeNewTab === false) {
+    return;
+  }
+
+  // Skip if opened from a link
+  if (tabInfo.openerTabId !== undefined) {
+    return;
+  }
+
+  // Use (|| tabInfo.url === "about:blank")
+  // if we want to also do it on new window
+  if (tabInfo.title === "New Tab" && tabInfo.url === "about:newtab") {
+    const resBookmarks = await browser.storage.local.get(pluginSettings.selectedGroup);
+
+    // Set the URL for the newly created tab
+    const bookmarkInfo = await getRandomBookmark(resBookmarks);
+    openBookmarks(bookmarkInfo, false, tabInfo, true);
   }
 }
 
@@ -287,89 +312,82 @@ function handleTheBookmarks(source) {
  * @param boolean forceNewTab
  * @param object tabInfo
  */
-function openBookmarks(bookmarks, forceNewTab, tabInfo) {
+async function openBookmarks(bookmarks, forceNewTab = false, tabInfo = null, useTabInfoIfExists = false) {
   logToDebugConsole("openBookmarks");
 
-  if (forceNewTab == null) {
-    forceNewTab = false;
+  for (const [index, bookmark] of bookmarks.entries()) {
+    logToDebugConsole("bookmark", bookmark);
+    await processHistory(bookmark);
+    await openBookmark(bookmark, index, forceNewTab, tabInfo, useTabInfoIfExists);
+  }
+}
+
+async function openBookmark(bookmark, index, forceNewTab, tabInfo, useTabInfoIfExists) {
+  if (bookmark.url.startsWith("file:///")) {
+    showNotification("Cannot open local file", "Sorry, local files being opened are blocked by FireFox currently.");
+    return;
   }
 
-  logToDebugConsole(bookmarks);
+  if (useTabInfoIfExists && tabInfo) {
+    await updateTabUrl(tabInfo.id, bookmark.url, true);
+  } else if (forceNewTab) {
+    await createNewTab(bookmark.url, index === 0);
+  } else {
+    await handleTabStrategy(bookmark, tabInfo);
+  }
+}
 
-  bookmarks.forEach(async (bookmark, index) => {
-    logToDebugConsole("bookmark", bookmark);
+async function handleTabStrategy(bookmark, tabInfo) {
+  if (pluginSettings.tabOption === "newTab") {
+    await createNewTab(bookmark.url, pluginSettings.tabSetActive);
+  } else if (pluginSettings.tabOption === "currentTab" && tabInfo) {
+    await updateTabUrl(tabInfo.id, bookmark.url, pluginSettings.tabSetActive);
+  } else {
+    await handleSessionTab(bookmark);
+  }
+}
 
-    await processHistory(bookmark);
+async function handleSessionTab(bookmark) {
+  if (sessionInfo.currentTabId === 0) {
+    const newTab = await browser.tabs.create({
+      active: pluginSettings.tabSetActive,
+      url: bookmark.url,
+    });
+    sessionInfo.currentTabId = newTab.id;
+    return;
+  }
 
-    if (bookmark.url.startsWith("file:///")) {
-      showNotification("Cannot open local file", "Sorry, local files being opened are blocked by FireFox currently.");
-    } else {
-      if (forceNewTab) {
-        // Context clicked to open random bookmarks from a folder
-        browser.tabs.create({
-          active: index == 0,
-          url: bookmark.url,
-        });
-      } else {
-        if (pluginSettings.tabOption === "newTab") {
-          browser.tabs.create({
-            active: pluginSettings.tabSetActive,
-            url: bookmark.url,
-          });
-        } else if (pluginSettings.tabOption === "currentTab" && tabInfo != null) {
-          browser.tabs.update(tabInfo.id, {
-            active: pluginSettings.tabSetActive,
-            highlighted: pluginSettings.tabSetActive,
-            url: bookmark.url,
-          });
-        } else {
-          if (sessionInfo.currentTabId === 0) {
-            const newTabInfo = browser.tabs.create({
-              active: pluginSettings.tabSetActive,
-              url: bookmark.url,
-            });
+  try {
+    const tab = await browser.tabs.get(sessionInfo.currentTabId);
+    logToDebugConsole("tab", tab);
 
-            newTabInfo.then((resNewTab) => {
-              sessionInfo.currentTabId = resNewTab.id;
-            });
-          } else {
-            // Check for the newly created tab and then keep using it
-            // if it doesn't exist, create a new one and use that one.
-            browser.tabs.get(sessionInfo.currentTabId).then(
-              (tab) => {
-                logToDebugConsole("tab", tab);
+    await updateTabUrl(tab.id, bookmark.url, pluginSettings.tabSetActive);
 
-                browser.tabs.update(tab.id, {
-                  active: pluginSettings.tabSetActive,
-                  highlighted: pluginSettings.tabSetActive,
-                  url: bookmark.url,
-                });
-
-                if (pluginSettings.tabSetActive) {
-                  browser.windows.update(tab.windowId, {
-                    focused: true,
-                  });
-                }
-
-                sessionInfo.currentTabId = tab.id;
-              },
-              (failed) => {
-                logToDebugConsole("failed", failed);
-
-                const newTabInfo = browser.tabs.create({
-                  active: pluginSettings.tabSetActive,
-                  url: bookmark.url,
-                });
-
-                newTabInfo.then((resNewTab) => {
-                  sessionInfo.currentTabId = resNewTab.id;
-                });
-              },
-            );
-          }
-        }
-      }
+    if (pluginSettings.tabSetActive) {
+      await browser.windows.update(tab.windowId, { focused: true });
     }
+
+    sessionInfo.currentTabId = tab.id;
+  } catch (error) {
+    logToDebugConsole("failed", error);
+
+    const newTab = await browser.tabs.create({
+      active: pluginSettings.tabSetActive,
+      url: bookmark.url,
+    });
+    sessionInfo.currentTabId = newTab.id;
+  }
+}
+
+async function createNewTab(url, active) {
+  return browser.tabs.create({ active, url });
+}
+
+async function updateTabUrl(tabId, url, active) {
+  return browser.tabs.update(tabId, {
+    active,
+    highlighted: active,
+    url,
   });
 }
 

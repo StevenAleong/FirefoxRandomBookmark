@@ -418,7 +418,7 @@ async function loadSavedOptions() {
     document.getElementById("openoption-current").checked = true;
   }
 
-  document.getElementById("randomizeonnewtab").checked = syncRes.randomizeNewTab ?? true;
+  document.getElementById("randomizeonnewtab").checked = syncRes.randomizeNewTab ?? false;
 
   document.getElementById("filter-urls").value = syncRes.filters ?? "";
 

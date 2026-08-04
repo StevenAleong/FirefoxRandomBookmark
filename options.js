@@ -2,6 +2,7 @@ const settingsEnum = {
   RANDOMIZEMETHOD: "randomizemethod",
   TABOPTION: "taboption",
   TABACTIVE: "tabactive",
+  RANDOMIZENEWTAB: "randomizenewtab",
   CONTEXTMENU: "contextmenu",
   GROUP: "bookmarkgroups",
   FILTERS: "filterurls",
@@ -95,7 +96,14 @@ radioOpenOptionCurrent.addEventListener("change", function () {
   saveSettings(settingsEnum.TABOPTION);
 });
 
-// filters
+// Randomize New Tab
+// -------------------------------------------------------------
+const checkboxRandomizeNewTab = document.getElementById("randomizeonnewtab");
+checkboxRandomizeNewTab.addEventListener("change", function () {
+  saveSettings(settingsEnum.RANDOMIZENEWTAB);
+});
+
+// Filters
 // -------------------------------------------------------------
 const textareaOptionFilter = document.getElementById("filter-urls");
 let filterUrlsOnFocus = "";
@@ -294,6 +302,12 @@ async function saveSettings(option) {
         });
         break;
 
+      case settingsEnum.RANDOMIZENEWTAB:
+        browser.storage.sync.set({
+          randomizeNewTab: document.getElementById("randomizeonnewtab").checked,
+        });
+        break;
+
       case settingsEnum.DISABLEAUTOMATICREFRESH:
         disableAutomaticRefresh = document.getElementById("disableAutomaticRefresh").checked;
 
@@ -403,6 +417,8 @@ async function loadSavedOptions() {
   } else if (syncRes.tabOption === "currentTab") {
     document.getElementById("openoption-current").checked = true;
   }
+
+  document.getElementById("randomizeonnewtab").checked = syncRes.randomizeNewTab ?? true;
 
   document.getElementById("filter-urls").value = syncRes.filters ?? "";
 
